@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>همه چیز بلد</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;font-family:Tahoma,sans-serif;background:#000;color:#fff;touch-action:none}
+canvas{display:block;touch-action:none}
+#menu{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 30%, #2a0a45 0%, #0d0018 60%, #000 100%);padding:20px}
+.title{font-size:clamp(38px,12vw,74px);font-weight:900;
+  background:linear-gradient(90deg,#e8c87a,#d88a3d,#e8c87a);background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4s linear infinite;text-align:center}
+@keyframes shine{to{background-position:200% 0}}
+.subtitle{margin-top:8px;font-size:clamp(13px,3.6vw,19px);color:#b898d8;letter-spacing:4px;text-align:center}
+.btns{margin-top:36px;display:flex;flex-direction:column;gap:12px;align-items:center;width:100%}
+.btn{width:100%;max-width:340px;padding:16px 24px;font-size:clamp(15px,4.2vw,18px);font-weight:700;cursor:pointer;font-family:inherit;
+  border:2px solid rgba(220,180,100,.55);border-radius:14px;color:#f0dcb0;
+  background:linear-gradient(180deg,rgba(70,25,110,.75),rgba(30,8,55,.9));transition:.2s}
+.btn:active{transform:scale(.96);border-color:#e8c87a}
+.foot{margin-top:30px;font-size:11px;color:#8878a0;letter-spacing:2px}
+.hidden{display:none!important}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:20}
+#clock{position:absolute;top:calc(8px + env(safe-area-inset-top));right:8px;background:rgba(8,5,20,.85);border:1.5px solid rgba(220,180,100,.5);
+  border-radius:12px;padding:6px 12px;text-align:center;min-width:110px}
+#clock .day{font-size:12px;color:#e8c87a;font-weight:700}
+#clock .time{font-size:20px;font-weight:900;margin-top:1px}
+#clock .badge{margin-top:3px;font-size:9px;color:#f09a5a;background:rgba(240,120,40,.15);
+  border:1px solid rgba(240,120,40,.5);border-radius:6px;padding:1px 5px;display:none}
+#money{position:absolute;top:calc(8px + env(safe-area-inset-top));left:8px;background:rgba(8,5,20,.85);border:1.5px solid rgba(120,220,140,.5);
+  border-radius:12px;padding:8px 14px;font-size:16px;font-weight:800;color:#9cd8a8}
+#energy{position:absolute;top:calc(58px + env(safe-area-inset-top));left:8px;background:rgba(8,5,20,.85);border:1.5px solid rgba(220,180,100,.4);
+  border-radius:12px;padding:6px 12px;font-size:13px}
+#energy .bar{width:110px;height:8px;background:rgba(255,255,255,.15);border-radius:4px;margin-top:3px;overflow:hidden}
+#energy .fill{height:100%;background:linear-gradient(90deg,#f0a030,#f0e030);width:100%;transition:width .3s}
+#inv{position:absolute;bottom:calc(200px + env(safe-area-inset-bottom));left:8px;background:rgba(8,5,20,.85);
+  border:1.5px solid rgba(220,180,100,.35);border-radius:10px;padding:6px 10px;font-size:12px;line-height:1.6;max-width:50vw}
+#prompt{position:absolute;bottom:calc(150px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+  background:rgba(8,5,20,.9);border:2px solid #e8c87a;border-radius:12px;padding:8px 16px;font-size:13px;font-weight:700;
+  color:#f0dcb0;opacity:0;transition:.2s;white-space:nowrap;max-width:92vw;text-align:center}
+#prompt.show{opacity:1}
+#toast{position:absolute;top:calc(70px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+  background:rgba(8,5,20,.94);border:2px solid #d88a3d;border-radius:12px;padding:8px 16px;font-size:13px;font-weight:700;
+  color:#e8c87a;opacity:0;transition:.35s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+#dust{position:fixed;inset:0;z-index:25;pointer-events:none;opacity:0;transition:.4s}
+#dust.show{opacity:1}
+#dust::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 50%, transparent 20%, rgba(180,140,90,.42) 100%)}
+.dustMsg{position:absolute;top:28%;left:50%;transform:translate(-50%,-50%);background:rgba(110,35,8,.94);
+  border:3px solid #e0a040;border-radius:14px;padding:12px 22px;font-size:clamp(14px,4.5vw,20px);font-weight:900;
+  animation:pulse 1s ease-in-out infinite;max-width:90vw;text-align:center}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.05)}}
+#dialog{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(0,0,0,.45);padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+#dialogBox{background:linear-gradient(180deg,rgba(18,8,32,.98),rgba(6,2,14,.99));border:2px solid #d0a860;
+  border-radius:16px;padding:16px 18px;width:100%;max-width:520px}
+#dialogName{color:#e8c87a;font-weight:900;font-size:15px;margin-bottom:6px}
+#dialogText{font-size:14px;line-height:1.8;margin-bottom:12px;white-space:pre-line}
+#dialogButtons{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.dbtn{padding:12px 18px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:2px solid rgba(220,180,100,.6);
+  border-radius:10px;color:#f0dcb0;background:linear-gradient(180deg,rgba(70,25,110,.8),rgba(30,8,55,.9));min-width:80px}
+.dbtn:active{transform:scale(.95)}
+#touchUI{position:fixed;inset:0;z-index:30;pointer-events:none;display:none}
+#touchUI.on{display:block}
+#joy{position:absolute;left:calc(20px + env(safe-area-inset-left));bottom:calc(30px + env(safe-area-inset-bottom));
+  width:130px;height:130px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,.09), rgba(255,255,255,.02));
+  border:2px solid rgba(255,255,255,.22);pointer-events:auto;touch-action:none}
+#joyKnob{position:absolute;left:50%;top:50%;width:58px;height:58px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #e8c87a, #b87830);border:2px solid rgba(255,255,255,.6);
+  transform:translate(-50%,-50%);box-shadow:0 4px 18px rgba(200,120,40,.5)}
+#actions{position:absolute;right:calc(16px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:10px;align-items:flex-end;pointer-events:auto}
+.abtn{width:72px;height:72px;border-radius:50%;border:2.5px solid rgba(255,255,255,.5);
+  background:radial-gradient(circle at 35% 30%, rgba(90,45,140,.85), rgba(30,10,60,.9));
+  color:#fff;font-size:26px;font-weight:900;display:flex;align-items:center;justify-content:center;
+  font-family:inherit;touch-action:manipulation}
+.abtn:active{transform:scale(.9);border-color:#e8c87a}
+.abtn.small{width:58px;height:58px;font-size:20px}
+.abtn.run{background:radial-gradient(circle at 35% 30%, rgba(220,120,50,.85), rgba(140,50,10,.9))}
+.abtn.run.active{border-color:#fff}
+#lookZone{position:absolute;top:0;right:0;width:55%;height:70%;pointer-events:auto;touch-action:none}
+#lookHint{position:absolute;top:50%;right:12px;transform:translateY(-50%);color:rgba(255,255,255,.3);
+  font-size:11px;writing-mode:vertical-rl;pointer-events:none}
+#rotateWarn{position:fixed;inset:0;z-index:200;background:#0d0018;display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;padding:30px}
+#rotateWarn p{font-size:16px;color:#e8c87a;font-weight:700}
+@media (orientation:portrait) and (max-width:900px){#rotateWarn.show{display:flex}}
+#tvScreen{position:fixed;inset:0;z-index:35;background:#000;display:none;align-items:center;justify-content:center;flex-direction:column}
+#tvScreen.on{display:flex}
+#tvScreen .txt{color:#e8c87a;font-size:clamp(16px,5vw,24px);font-weight:900;text-align:center;padding:20px;white-space:pre-line}
+#tvScreen .close{position:absolute;top:16px;right:16px;padding:10px 18px;border:2px solid #e8c87a;border-radius:10px;
+  background:rgba(0,0,0,.7);color:#f0dcb0;font-weight:700;font-family:inherit;font-size:14px;cursor:pointer}
+#miniGame{position:fixed;inset:0;z-index:36;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:20px}
+#miniGame.on{display:flex}
+#miniGame .box{background:linear-gradient(180deg,rgba(30,10,50,.98),rgba(10,2,20,.99));border:2px solid #e8c87a;
+  border-radius:18px;padding:22px;text-align:center;max-width:400px;width:100%}
+#miniGame h3{color:#e8c87a;font-size:18px;margin-bottom:10px}
+#miniGame p{font-size:13px;margin-bottom:14px;line-height:1.7;color:#d8c8b0}
+#miniGame .track{width:100%;height:22px;background:#1a0a2a;border-radius:11px;position:relative;margin-bottom:16px;border:1px solid #4a2a6a}
+#miniGame .target{position:absolute;top:0;height:100%;background:rgba(120,220,140,.35);border-left:1px solid #7ddc8c;border-right:1px solid #7ddc8c}
+#miniGame .cursor{position:absolute;top:-2px;width:4px;height:26px;background:#e8c87a;border-radius:2px;box-shadow:0 0 8px #e8c87a}
+#miniGame .btnrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#hookahPanel{position:fixed;inset:0;z-index:36;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center}
+#hookahPanel.on{display:flex}
+#hookahPanel .box{background:linear-gradient(180deg,rgba(30,10,50,.98),rgba(10,2,20,.99));border:2px solid #e8c87a;
+  border-radius:18px;padding:24px;text-align:center;max-width:340px}
+#hookahPanel h3{color:#e8c87a;font-size:20px;margin-bottom:14px}
+#hookahPanel p{font-size:13px;margin-bottom:16px;line-height:1.8;color:#d8c8b0}
+#hookahPanel .btnrow{display:flex;gap:10px;justify-content:center}
+</style>
+</head>
+<body>
+
+<div id="menu">
+  <div class="title">همه چیز بلد</div>
+  <div class="subtitle">دهکده انارستان</div>
+  <div class="btns">
+    <button class="btn" id="btnStart">▶ شروع بازی</button>
+    <button class="btn" id="btnHelp">📖 راهنما</button>
+    <button class="btn" id="btnAbout">ℹ درباره</button>
+  </div>
+  <div class="foot">🏘️ ۱۲ شغل • واقع‌گرایانه</div>
+</div>
+
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div id="clock">
+    <div class="day" id="dayLabel">شنبه</div>
+    <div class="time" id="timeLabel">06:00</div>
+    <div class="badge" id="dayBadge">🐐 چوپانی</div>
+  </div>
+  <div id="money">💰 ۲۰۰</div>
+  <div id="energy">⚡ انرژی<div class="bar"><div class="fill" id="energyFill"></div></div></div>
+  <div id="inv"></div>
+  <div id="prompt"></div>
+  <div id="toast"></div>
+</div>
+
+<div id="dust"><div class="dustMsg">⚠️ برای چشمات خاک ضرر داره</div></div>
+
+<div id="tvScreen">
+  <div class="txt" id="tvTxt">📺 اخبار دهکده</div>
+  <button class="close" onclick="document.getElementById('tvScreen').classList.remove('on')">✕</button>
+</div>
+
+<div id="miniGame">
+  <div class="box">
+    <h3 id="mgTitle">مینی‌گیم</h3>
+    <p id="mgDesc"></p>
+    <div class="track">
+      <div class="target" id="mgTarget"></div>
+      <div class="cursor" id="mgCursor"></div>
+    </div>
+    <div class="btnrow">
+      <button class="dbtn" id="mgHit">🎯 بزن!</button>
+      <button class="dbtn" id="mgCancel">لغو</button>
+    </div>
+  </div>
+</div>
+
+<div id="hookahPanel">
+  <div class="box">
+    <h3>💨 قلیون</h3>
+    <p>هزینه: ۵۰ سکه<br>انرژی: +۳۰</p>
+    <div class="btnrow">
+      <button class="dbtn" id="hookahYes">بکش (۵۰)</button>
+      <button class="dbtn" id="hookahNo">بی‌خیال</button>
+    </div>
+  </div>
+</div>
+
+<div id="touchUI">
+  <div id="lookZone"><div id="lookHint">👆 بکش</div></div>
+  <div id="joy"><div id="joyKnob"></div></div>
+  <div id="actions">
+    <button class="abtn small" id="btnRun">🏃</button>
+    <button class="abtn" id="btnInteract">E</button>
+  </div>
+</div>
+
+<div id="dialog" class="hidden">
+  <div id="dialogBox">
+    <div id="dialogName"></div>
+    <div id="dialogText"></div>
+    <div id="dialogButtons"></div>
+  </div>
+</div>
+
+<div id="rotateWarn">
+  <p>📱 گوشی رو بچرخون افقی</p>
+  <button class="btn" style="max-width:200px" onclick="document.getElementById('rotateWarn').classList.remove('show')">ادامه</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+'use strict';
+
+// ==========================================================================
+// تنظیمات و وضعیت
+// ==========================================================================
+var IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+var DAYS = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+var SHEPHERD_DAYS = [0, 3, 5];
+var SEC_PER_GAME_MIN = 0.14;
+
+var state = {
+  day:0, hour:6, minute:0, money:200, energy:100,
+  started:false, paused:true,
+  hasBasket:false, basketFruit:0,
+  sheepFollowing:false, sheepInPasture:false, waitingForNight:false,
+  dialogueOpen:false, insideHome:false,
+  tool:null, job:null, carrying:null, sitting:false, miniGameActive:false
+};
+
+var player = {
+  group:null, pos:null, rot:Math.PI, pitch:0.15,
+  speed:6, running:false, walkPhase:0,
+  arms:{l:null,r:null}, legs:{l:null,r:null}, head:null,
+  covering:false, coverT:0, dustT:0, toolMesh:null
+};
+
+// ==========================================================================
+// سه‌بعدی
+// ==========================================================================
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9fc4d8);
+scene.fog = new THREE.FogExp2(0xb0c8d8, 0.0075);
+
+var camera = new THREE.PerspectiveCamera(58, window.innerWidth/window.innerHeight, 0.1, 900);
+
+var canvasEl = document.getElementById('c');
+var renderer = new THREE.WebGLRenderer({canvas: canvasEl, antialias: !IS_TOUCH});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, IS_TOUCH ? 1.4 : 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+window.addEventListener('resize', function(){
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  checkOrientation();
+});
+window.addEventListener('orientationchange', function(){ setTimeout(checkOrientation, 200); });
+
+function checkOrientation(){
+  var w = document.getElementById('rotateWarn');
+  if(window.innerHeight > window.innerWidth && window.innerWidth < 900 && IS_TOUCH) w.classList.add('show');
+  else w.classList.remove('show');
+}
+
+// نور
+var hemi = new THREE.HemisphereLight(0xbfd8f0, 0x5a7a4a, 0.55); scene.add(hemi);
+var sun = new THREE.DirectionalLight(0xffe8c0, 1.35);
+sun.position.set(60, 90, 40);
+sun.castShadow = true;
+sun.shadow.mapSize.set(IS_TOUCH?1024:2048, IS_TOUCH?1024:2048);
+sun.shadow.camera.left = -120; sun.shadow.camera.right = 120;
+sun.shadow.camera.top = 120; sun.shadow.camera.bottom = -120;
+sun.shadow.camera.far = 300;
+scene.add(sun);
+var ambNight = new THREE.AmbientLight(0x1a2a4a, 0.0); scene.add(ambNight);
+
+// ==========================================================================
+// تکسچرها
+// ==========================================================================
+function makeTex(w,h,fn,r){
+  r = r || 1;
+  var c = document.createElement('canvas'); c.width=w; c.height=h;
+  fn(c.getContext('2d'), w, h);
+  var t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(r,r);
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+var grassTex = makeTex(256,256,function(ctx,w,h){
+  ctx.fillStyle = '#5a8a3e'; ctx.fillRect(0,0,w,h);
+  for(var i=0;i<4000;i++){
+    var g = 90+Math.random()*70;
+    ctx.fillStyle = 'rgba('+(40+Math.random()*30|0)+','+(g|0)+','+(30+Math.random()*30|0)+','+(0.4+Math.random()*0.5)+')';
+    ctx.fillRect(Math.random()*w, Math.random()*h, 1+Math.random()*2, 1+Math.random()*3);
+  }
+},25);
+
+var dirtTex = makeTex(256,256,function(ctx,w,h){
+  ctx.fillStyle = '#8a7355'; ctx.fillRect(0,0,w,h);
+  for(var i=0;i<4000;i++){
+    var g = 100+Math.random()*70;
+    ctx.fillStyle = 'rgba('+(g|0)+','+(g*0.8|0)+','+(g*0.6|0)+','+(0.4+Math.random()*0.5)+')';
+    ctx.fillRect(Math.random()*w, Math.random()*h, 1+Math.random()*3, 1+Math.random()*3);
+  }
+},8);
+
+var adobeTex = makeTex(256,256,function(ctx,w,h){
+  ctx.fillStyle = '#c9a878'; ctx.fillRect(0,0,w,h);
+  for(var i=0;i<3000;i++){
+    ctx.fillStyle = 'rgba('+(180+Math.random()*50|0)+','+(150+Math.random()*40|0)+','+(110+Math.random()*40|0)+','+(0.4+Math.random()*0.4)+')';
+    ctx.fillRect(Math.random()*w, Math.random()*h, 2+Math.random()*4, 2+Math.random()*4);
+  }
+},2);
+
+var woodTex = makeTex(256,256,function(ctx,w,h){
+  ctx.fillStyle = '#8a6540'; ctx.fillRect(0,0,w,h);
+  for(var i=0;i<30;i++){
+    ctx.strokeStyle = 'rgba('+(60+Math.random()*40|0)+','+(40+Math.random()*30|0)+','+(20+Math.random()*20|0)+','+(0.3+Math.random()*0.4)+')';
+    ctx.lineWidth = 1+Math.random()*3;
+    var x = Math.random()*w;
+    ctx.beginPath(); ctx.moveTo(x, 0);
+    for(var y=0;y<h;y+=20) ctx.lineTo(x + Math.sin(y*0.05)*8 + (Math.random()-0.5)*3, y);
+    ctx.stroke();
+  }
+},2);
+
+var wallInteriorTex = makeTex(256,256,function(ctx,w,h){
+  ctx.fillStyle = '#e8dcc0'; ctx.fillRect(0,0,w,h);
+  for(var i=0;i<1500;i++){
+    ctx.fillStyle = 'rgba('+(200+Math.random()*40|0)+','+(180+Math.random()*40|0)+','+(140+Math.random()*40|0)+','+(0.2+Math.random()*0.3)+')';
+    ctx.fillRect(Math.random()*w, Math.random()*h, 2+Math.random()*3, 2+Math.random()*3);
+  }
+},1);
+
+// ==========================================================================
+// زمین و جاده
+// ==========================================================================
+var ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(400, 400),
+  new THREE.MeshStandardMaterial({map: grassTex, roughness:1})
+);
+ground.rotation.x = -Math.PI/2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+function makeRoad(x,z,w,h){
+  var t = dirtTex.clone(); t.needsUpdate = true; t.repeat.set(w/6, h/6);
+  var m = new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshStandardMaterial({map:t, roughness:1}));
+  m.rotation.x = -Math.PI/2; m.position.set(x, 0.02, z); m.receiveShadow = true;
+  scene.add(m);
+}
+makeRoad(0, 0, 12, 120);
+makeRoad(0, 0, 120, 12);
+
+// ==========================================================================
+// درخت انار و درخت معمولی
+// ==========================================================================
+function makeTree(x, z, scale){
+  scale = scale || 1;
+  var g = new THREE.Group();
+  var trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.28, 0.45, 3.2, 10),
+    new THREE.MeshStandardMaterial({color:0x8a6a48, roughness:0.95})
+  );
+  trunk.position.y = 1.6; trunk.castShadow = true; g.add(trunk);
+  var lc = [0x3a7a2a, 0x4a8a38, 0x2f6a24];
+  for(var i=0;i<4;i++){
+    var f = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.4 - i*0.12, 1),
+      new THREE.MeshStandardMaterial({color: lc[i%3], roughness:1, flatShading:true})
+    );
+    var a = (i/4)*Math.PI*2;
+    var r = i === 0 ? 0 : 0.9;
+    f.position.set(Math.cos(a)*r, 4.2, Math.sin(a)*r);
+    f.castShadow = true; g.add(f);
+  }
+  g.position.set(x, 0, z); g.scale.setScalar(scale);
+  scene.add(g); return g;
+}
+
+var pomTrees = [];
+function makePomTree(x, z){
+  var g = new THREE.Group();
+  var trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.20, 0.32, 2.4, 8),
+    new THREE.MeshStandardMaterial({color:0x8a5a3a, roughness:0.95})
+  );
+  trunk.position.y = 1.2; trunk.castShadow = true; g.add(trunk);
+  var lc = [0x3a8a30, 0x4a9a3a, 0x2f7a24];
+  for(var i=0;i<4;i++){
+    var f = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.2 - i*0.1, 1),
+      new THREE.MeshStandardMaterial({color: lc[i%3], roughness:1, flatShading:true})
+    );
+    var a = (i/4)*Math.PI*2;
+    var r = i === 0 ? 0 : 0.7;
+    f.position.set(Math.cos(a)*r, 3.4, Math.sin(a)*r);
+    f.castShadow = true; g.add(f);
+  }
+  var fruits = [];
+  var fm = new THREE.MeshStandardMaterial({color:0xb02222, roughness:0.35, emissive:0x2a0000, emissiveIntensity:0.3});
+  for(var j=0;j<20;j++){
+    var fr = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 8), fm);
+    var a2 = Math.random()*Math.PI*2;
+    var b2 = Math.random()*Math.PI;
+    var r2 = 1.5;
+    fr.position.set(Math.sin(b2)*Math.cos(a2)*r2, 3.4 + Math.cos(b2)*r2*0.8, Math.sin(b2)*Math.sin(a2)*r2);
+    fr.castShadow = true; g.add(fr); fruits.push(fr);
+  }
+  g.position.set(x, 0, z);
+  scene.add(g);
+  pomTrees.push({group:g, fruits:fruits, remaining:20});
+}
+
+function makeBuilding(x, z, w, h, d, tint, roofColor){
+  var g = new THREE.Group();
+  var wt = adobeTex.clone(); wt.needsUpdate = true;
+  wt.repeat.set(Math.max(1, w/3), Math.max(1, h/3));
+  var body = new THREE.Mesh(
+    new THREE.BoxGeometry(w, h, d),
+    new THREE.MeshStandardMaterial({map: wt, roughness:0.92, color: tint})
+  );
+  body.position.y = h/2; body.castShadow = true; body.receiveShadow = true;
+  g.add(body);
+  var roof = new THREE.Mesh(
+    new THREE.ConeGeometry(Math.max(w,d)*0.78, 1.8, 4),
+    new THREE.MeshStandardMaterial({color: roofColor, roughness:0.85})
+  );
+  roof.position.y = h + 0.9; roof.rotation.y = Math.PI/4; roof.castShadow = true;
+  g.add(roof);
+  var doorMat = new THREE.MeshStandardMaterial({color:0x5a3a20, roughness:0.85});
+  var door = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.2, 0.12), doorMat);
+  door.position.set(0, 1.1, d/2 + 0.06); door.castShadow = true;
+  g.add(door);
+  g.position.set(x, 0, z);
+  scene.add(g);
+  return g;
+}
+
+// چیدمان دهکده
+makeBuilding(0, 32, 8, 4, 7, 0xe8d8b8, 0x8a3a2a);
+makeBuilding(45, 20, 10, 4.5, 8, 0xd8e0e8, 0x5a5a6a);
+makeBuilding(-45, 20, 8, 4, 7, 0xf0c8d8, 0x8a4060);
+makeBuilding(-45, -10, 9, 4, 7, 0xb0b8c0, 0x4a4a52);
+makeBuilding(-45, -35, 12, 5, 10, 0xc8b090, 0x6a5040);
+makeBuilding(20, 40, 8, 4, 6, 0xf0d8a0, 0x6a4a30);
+makeBuilding(60, -10, 10, 4.5, 9, 0xb8483a, 0x6a2820);
+makeBuilding(-70, 20, 8, 4, 7, 0xd8a880, 0x5a3020);
+makeBuilding(-70, -10, 9, 4, 8, 0xc8b080, 0x6a4a30);
+makeBuilding(70, 20, 9, 4.5, 8, 0xe0c898, 0x8a6020);
+makeBuilding(70, -35, 8, 4, 7, 0xc8e0a0, 0x4a6a30);
+makeBuilding(30, 60, 8, 4, 6, 0xe8c060, 0x6a4a10);
+
+// باغ انار با حصار
+(function(){
+  var wm = new THREE.MeshStandardMaterial({color:0xc8a888, roughness:0.95});
+  function wall(x,z,w,d){
+    var m = new THREE.Mesh(new THREE.BoxGeometry(w,1.4,d), wm);
+    m.position.set(x,0.7,z); m.castShadow = true; m.receiveShadow = true;
+    scene.add(m);
+  }
+  wall(-20, -40, 1, 30);
+  wall(20, -40, 1, 30);
+  wall(0, -25, 40, 1);
+  wall(0, -55, 40, 1);
+  for(var i=0;i<4;i++){
+    for(var j=0;j<3;j++){
+      makePomTree(-12 + i*8, -32 - j*7);
+    }
+  }
+})();
+
+// سبد (مش) در باغ
+var basketMesh = new THREE.Group();
+(function(){
+  var body = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.30, 0.45, 12, 1, true),
+    new THREE.MeshStandardMaterial({color:0xb88848, roughness:0.9, side:THREE.DoubleSide})
+  );
+  body.position.y = 0.225; body.castShadow = true;
+  basketMesh.add(body);
+  var bottom = new THREE.Mesh(
+    new THREE.CircleGeometry(0.30, 12),
+    new THREE.MeshStandardMaterial({color:0x8a6a30, roughness:1})
+  );
+  bottom.rotation.x = -Math.PI/2; bottom.position.y = 0.005;
+  basketMesh.add(bottom);
+  var handle = new THREE.Mesh(
+    new THREE.TorusGeometry(0.28, 0.03, 6, 16, Math.PI),
+    new THREE.MeshStandardMaterial({color:0x8a6a30, roughness:0.9})
+  );
+  handle.position.y = 0.45; handle.rotation.y = Math.PI/2;
+  basketMesh.add(handle);
+  basketMesh.position.set(3, 0.02, -24);
+  scene.add(basketMesh);
+})();
+
+// چراگاه
+var pasture = new THREE.Mesh(
+  new THREE.CircleGeometry(20, 32),
+  new THREE.MeshStandardMaterial({color:0x9ccc66, roughness:1})
+);
+pasture.rotation.x = -Math.PI/2;
+pasture.position.set(70, 0.03, -45);
+pasture.receiveShadow = true;
+scene.add(pasture);
+
+// درخت‌های تزئینی
+var treePos = [[-60,50],[50,-70],[-70,-60],[80,50],[-30,60],[30,-80],[-80,0],[80,0]];
+for(var ti=0; ti<treePos.length; ti++) makeTree(treePos[ti][0], treePos[ti][1]);
+
+// ==========================================================================
+// شخصیت
+// ==========================================================================
+function makeCharacter(opts){
+  opts = opts || {};
+  var shirt = opts.shirt !== undefined ? opts.shirt : 0x3a5fc8;
+  var pants = opts.pants !== undefined ? opts.pants : 0x2a2a3a;
+  var skin = opts.skin !== undefined ? opts.skin : 0xe8b088;
+  var glasses = opts.glasses !== false;
+  var hairColor = opts.hairColor !== undefined ? opts.hairColor : 0x1a1a1a;
+
+  var c = new THREE.Group();
+  var skinM = new THREE.MeshStandardMaterial({color:skin, roughness:0.72});
+  var shirtM = new THREE.MeshStandardMaterial({color:shirt, roughness:0.88});
+  var pantsM = new THREE.MeshStandardMaterial({color:pants, roughness:0.92});
+  var darkM = new THREE.MeshStandardMaterial({color:0x0a0a0a, metalness:0.6, roughness:0.3});
+  var lensM = new THREE.MeshPhysicalMaterial({color:0xaaddff, transparent:true, opacity:0.25, roughness:0.05});
+  var whiteM = new THREE.MeshStandardMaterial({color:0xf8f8f8, roughness:0.4});
+  var pupilM = new THREE.MeshStandardMaterial({color:0x0a0a10, roughness:0.2});
+  var hairM = new THREE.MeshStandardMaterial({color:hairColor, roughness:0.85});
+
+  var torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.55, 6, 12), shirtM);
+  torso.position.y = 1.18; torso.castShadow = true;
+  c.add(torso);
+
+  var shoulders = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.14, 0.36), shirtM);
+  shoulders.position.y = 1.50; shoulders.castShadow = true;
+  c.add(shoulders);
+
+  var neck = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.12, 8), skinM);
+  neck.position.y = 1.62;
+  c.add(neck);
+
+  var head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 20, 20), skinM);
+  head.position.y = 1.79; head.scale.set(1, 1.13, 1.02);
+  head.castShadow = true;
+  c.add(head);
+
+  var hair = new THREE.Mesh(
+    new THREE.SphereGeometry(0.238, 16, 16, 0, Math.PI*2, 0, Math.PI*0.62),
+    hairM
+  );
+  hair.position.y = 1.815; hair.scale.set(1.02, 1.15, 1.04); hair.castShadow = true;
+  c.add(hair);
+
+  [-1,1].forEach(function(s){
+    var ear = new THREE.Mesh(new THREE.SphereGeometry(0.052, 8, 8), skinM);
+    ear.position.set(s*0.215, 1.79, 0.01); ear.scale.set(0.7, 1, 0.8);
+    c.add(ear);
+  });
+
+  [-0.078, 0.078].forEach(function(x){
+    var eye = new THREE.Mesh(new THREE.SphereGeometry(0.036, 10, 10), whiteM);
+    eye.position.set(x, 1.838, -0.192); eye.scale.set(1, 0.9, 0.7);
+    c.add(eye);
+    var iris = new THREE.Mesh(new THREE.SphereGeometry(0.020, 10, 10),
+      new THREE.MeshStandardMaterial({color:0x4a3520, roughness:0.15}));
+    iris.position.set(x, 1.838, -0.220); iris.scale.set(1, 1, 0.55);
+    c.add(iris);
+    var pupil = new THREE.Mesh(new THREE.SphereGeometry(0.010, 8, 8), pupilM);
+    pupil.position.set(x, 1.838, -0.227); pupil.scale.set(1, 1, 0.5);
+    c.add(pupil);
+  });
+
+  var nose = new THREE.Mesh(new THREE.ConeGeometry(0.036, 0.10, 6), skinM);
+  nose.rotation.x = Math.PI/2; nose.position.set(0, 1.79, -0.215);
+  c.add(nose);
+
+  var mouth = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.012, 0.02),
+    new THREE.MeshStandardMaterial({color:0xa04040, roughness:0.6}));
+  mouth.position.set(0, 1.735, -0.218);
+  c.add(mouth);
+
+  if(glasses){
+    var frameMat = new THREE.MeshStandardMaterial({color:0x0a0a0a, metalness:0.6, roughness:0.3});
+    [-0.078, 0.078].forEach(function(x){
+      var ring = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.008, 6, 16), frameMat);
+      ring.position.set(x, 1.838, -0.198);
+      c.add(ring);
+      var lens = new THREE.Mesh(new THREE.CircleGeometry(0.056, 16), lensM);
+      lens.position.set(x, 1.838, -0.200);
+      c.add(lens);
+    });
+    var bridge = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.008, 0.008), frameMat);
+    bridge.position.set(0, 1.838, -0.198);
+    c.add(bridge);
+  }
+
+  function makeArm(side){
+    var sh = new THREE.Group();
+    sh.position.set(side*0.35, 1.45, 0);
+    var ua = new THREE.Mesh(new THREE.CapsuleGeometry(0.072, 0.34, 4, 10), shirtM);
+    ua.position.y = -0.24; ua.castShadow = true;
+    sh.add(ua);
+    var elbow = new THREE.Group(); elbow.position.y = -0.48;
+    var fa = new THREE.Mesh(new THREE.CapsuleGeometry(0.062, 0.30, 4, 10), shirtM);
+    fa.position.y = -0.20; fa.castShadow = true;
+    elbow.add(fa);
+    var hand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.16, 0.07), skinM);
+    hand.position.y = -0.42; hand.castShadow = true;
+    elbow.add(hand);
+    sh.add(elbow);
+    c.add(sh);
+    return sh;
+  }
+  function makeLeg(side){
+    var hip = new THREE.Group(); hip.position.set(side*0.13, 0.80, 0);
+    var thigh = new THREE.Mesh(new THREE.CapsuleGeometry(0.10, 0.32, 4, 10), pantsM);
+    thigh.position.y = -0.24; thigh.castShadow = true;
+    hip.add(thigh);
+    var knee = new THREE.Group(); knee.position.y = -0.46;
+    var shin = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.32, 4, 10), pantsM);
+    shin.position.y = -0.22; shin.castShadow = true;
+    knee.add(shin);
+    var shoeMat = new THREE.MeshStandardMaterial({color:0x181818, roughness:0.55});
+    var shoe = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.09, 0.28), shoeMat);
+    shoe.position.set(0, -0.46, -0.05);
+    knee.add(shoe);
+    hip.add(knee);
+    c.add(hip);
+    return hip;
+  }
+
+  c.userData = {
+    arms:{l:makeArm(-1), r:makeArm(1)},
+    legs:{l:makeLeg(-1), r:makeLeg(1)},
+    head:head
+  };
+  return c;
+}
+
+player.pos = new THREE.Vector3(0, 0, 25);
+player.group = makeCharacter({shirt:0x2a4a98, pants:0x1a2238, glasses:true, skin:0xdcb08a});
+player.group.position.copy(player.pos);
+player.group.rotation.y = player.rot;
+scene.add(player.group);
+player.arms = player.group.userData.arms;
+player.legs = player.group.userData.legs;
+player.head = player.group.userData.head;
+
+// ابزار دست
+function setPlayerTool(type){
+  if(player.toolMesh){
+    player.arms.r.remove(player.toolMesh);
+    player.toolMesh = null;
+  }
+  if(!type) return;
+  var g = new THREE.Group();
+  var woodM = new THREE.MeshStandardMaterial({color:0x8a6540, roughness:0.85});
+  var metalM = new THREE.MeshStandardMaterial({color:0x909098, metalness:0.85, roughness:0.3});
+
+  if(type === 'scissors'){
+    var b1 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.20, 0.02), metalM);
+    b1.position.set(-0.02, 0, 0); b1.rotation.z = 0.15; g.add(b1);
+    var b2 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.20, 0.02), metalM);
+    b2.position.set(0.02, 0, 0); b2.rotation.z = -0.15; g.add(b2);
+  } else if(type === 'torch'){
+    var handle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.30, 8), woodM);
+    handle.position.y = 0; g.add(handle);
+    var nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.10, 8), metalM);
+    nozzle.position.y = 0.20; g.add(nozzle);
+    var flame = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.15, 8),
+      new THREE.MeshBasicMaterial({color:0x88ccff, transparent:true, opacity:0.85}));
+    flame.position.y = 0.32; g.add(flame);
+  } else if(type === 'saw'){
+    var blade = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.35, 0.14), metalM);
+    blade.position.y = 0.10; g.add(blade);
+    var handle2 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.14, 0.08), woodM);
+    handle2.position.y = -0.12; g.add(handle2);
+  } else if(type === 'hammer'){
+    var handle3 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), woodM);
+    handle3.position.y = 0; g.add(handle3);
+    var headH = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.10, 0.08), metalM);
+    headH.position.y = 0.19; g.add(headH);
+  } else if(type === 'rod'){
+    var rod = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 1.6, 6), metalM);
+    rod.rotation.x = Math.PI/3; g.add(rod);
+  } else if(type === 'watering'){
+    var bodyW = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, 0.20, 10), metalM);
+    g.add(bodyW);
+  } else if(type === 'package'){
+    var boxP = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.22, 0.24),
+      new THREE.MeshStandardMaterial({color:0x9a6a3a, roughness:0.9}));
+    g.add(boxP);
+  } else if(type === 'dough' || type === 'dough_ready'){
+    var dough = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10),
+      new THREE.MeshStandardMaterial({color: type === 'dough_ready' ? 0xc89850 : 0xf0d8a0, roughness:0.9}));
+    dough.scale.y = 0.6; g.add(dough);
+  } else if(type === 'bread' || type === 'bread_baking'){
+    var bread = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.14, 4, 10),
+      new THREE.MeshStandardMaterial({color: type === 'bread_baking' ? 0xc88040 : 0xe0b070, roughness:0.85}));
+    bread.rotation.z = Math.PI/2; g.add(bread);
+  }
+
+  g.position.set(0, -0.48, -0.08);
+  player.arms.r.add(g);
+  player.toolMesh = g;
+}
+
+// NPCها
+function addNPC(name, x, z, rotY, opts){
+  opts = opts || {};
+  var m = makeCharacter({
+    shirt:opts.shirt || 0x884422,
+    pants:0x333322,
+    skin:opts.skin || 0xd8a878,
+    glasses:false,
+    hairColor:0x2a1a0a
+  });
+  m.position.set(x, 0, z);
+  m.rotation.y = rotY;
+  scene.add(m);
+  return {name:name, mesh:m, x:x, z:z};
+}
+addNPC('باغدار رحیم', 0, -22, 0, {shirt:0x6a4a28});
+addNPC('عمو قنبر', 58, -8, Math.PI/2, {shirt:0x4a5a2a});
+addNPC('فروشنده', 45, 25, Math.PI, {shirt:0x2a4a7a});
+addNPC('استاد کریم', -45, -5, Math.PI, {shirt:0x505050});
+addNPC('آرایشگر', -45, 25, Math.PI, {shirt:0xa84878});
+addNPC('سرکارگر', -45, -30, Math.PI, {shirt:0xd8a830});
+addNPC('آهنگر', -70, 25, Math.PI, {shirt:0x3a2a1a});
+addNPC('نجار', -70, -5, Math.PI, {shirt:0x8a5a30});
+addNPC('نانوا', 70, 25, Math.PI, {shirt:0xd8d8e0});
+addNPC('گلفروش', 70, -30, Math.PI, {shirt:0x4a8a4a});
+addNPC('پیک', 30, 65, Math.PI, {shirt:0xe8a020});
+
+// گوسفند و بز
+var sheep = [];
+function makeSheep(x, z, isGoat){
+  var g = new THREE.Group();
+  var woolMat = new THREE.MeshStandardMaterial({color: isGoat?0x4a4a4a:0xf0ebe0, roughness:0.98});
+  var skinMat = new THREE.MeshStandardMaterial({color: isGoat?0x2a2a2a:0x333333, roughness:0.85});
+  var body = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 0.55, 6, 12), woolMat);
+  body.rotation.z = Math.PI/2; body.position.y = 0.55; body.castShadow = true;
+  g.add(body);
+  var head = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 10), skinMat);
+  head.position.set(0, 0.62, -0.52); head.castShadow = true;
+  g.add(head);
+  var legPos = [[-0.18,-0.2],[0.18,-0.2],[-0.18,0.2],[0.18,0.2]];
+  legPos.forEach(function(p){
+    var leg = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.055,0.4,6), skinMat);
+    leg.position.set(p[0], 0.2, p[1]); leg.castShadow = true;
+    g.add(leg);
+  });
+  g.position.set(x, 0, z);
+  scene.add(g);
+  sheep.push({group:g, isGoat:isGoat, home:new THREE.Vector3(x,0,z)});
+}
+for(var si=0; si<6; si++) makeSheep(60 + (si-3)*1.6, -15, false);
+for(var gi=0; gi<4; gi++) makeSheep(62 + (gi-2)*1.6, -6, true);
+
+// ==========================================================================
+// ابزارهای روی زمین
+// ==========================================================================
+var jobProps = [];
+
+// تورچ جوشکاری
+(function(){
+  var g = new THREE.Group();
+  var h = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.30, 8),
+    new THREE.MeshStandardMaterial({color:0x3a2a1a, roughness:0.85}));
+  h.position.y = 0.15; g.add(h);
+  var n = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.10, 8),
+    new THREE.MeshStandardMaterial({color:0x909098, metalness:0.8, roughness:0.3}));
+  n.position.y = 0.35; g.add(n);
+  g.position.set(-42, 0.9, -5);
+  scene.add(g);
+  jobProps.push({name:'torch', mesh:g});
+})();
+
+// قطعه فلز
+(function(){
+  var m = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.4),
+    new THREE.MeshStandardMaterial({color:0x707878, metalness:0.85, roughness:0.4}));
+  m.position.set(-45, 0.2, -6);
+  m.castShadow = true;
+  scene.add(m);
+})();
+
+// قیچی روی میز
+(function(){
+  var g = new THREE.Group();
+  var b = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.20, 0.02),
+    new THREE.MeshStandardMaterial({color:0x909098, metalness:0.9, roughness:0.2}));
+  b.position.y = 0.1; g.add(b);
+  g.position.set(-43, 0.9, 24);
+  scene.add(g);
+})();
+
+// ارّه نجاری
+(function(){
+  var g = new THREE.Group();
+  var blade = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.4, 0.16),
+    new THREE.MeshStandardMaterial({color:0x909098, metalness:0.85, roughness:0.3}));
+  blade.position.y = 0.2; g.add(blade);
+  g.position.set(-70, 0.9, -8);
+  scene.add(g);
+})();
+
+// چکش آهنگری
+(function(){
+  var g = new THREE.Group();
+  var h = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8),
+    new THREE.MeshStandardMaterial({color:0x6a4a20, roughness:0.8}));
+  h.position.y = 0.17; g.add(h);
+  var head = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.10, 0.08),
+    new THREE.MeshStandardMaterial({color:0x909098, metalness:0.9}));
+  head.position.y = 0.37; g.add(head);
+  g.position.set(-70, 0.9, 22);
+  scene.add(g);
+})();
+
+// چوب‌ها
+for(var wi=0; wi<3; wi++){
+  var wMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 0.2),
+    new THREE.MeshStandardMaterial({color:0x8a6540, roughness:0.9}));
+  wMesh.position.set(-72 + wi*1.4, 0.1, -12);
+  wMesh.castShadow = true;
+  scene.add(wMesh);
+}
+
+// آجرها
+for(var bi=0; bi<5; bi++){
+  var br = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.25, 0.25),
+    new THREE.MeshStandardMaterial({color:0xc86858, roughness:0.9}));
+  br.position.set(-48 + (bi%3)*0.6, 0.13 + Math.floor(bi/3)*0.26, -32);
+  br.castShadow = true;
+  scene.add(br);
+}
+
+// جعبه‌ها
+for(var boi=0; boi<3; boi++){
+  var box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.4),
+    new THREE.MeshStandardMaterial({color:0xa87840, roughness:0.9}));
+  box.position.set(48 + boi*0.6, 0.2, 27);
+  box.castShadow = true;
+  scene.add(box);
+}
+
+// گل‌ها
+var flowers = [];
+for(var fi=0; fi<6; fi++){
+  var fg = new THREE.Group();
+  var stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4, 6),
+    new THREE.MeshStandardMaterial({color:0x3a8a3a}));
+  stem.position.y = 0.2; fg.add(stem);
+  var petalColor = [0xff4488, 0xffd040, 0xcc44ff, 0xff8844][fi%4];
+  var petal = new THREE.Mesh(new THREE.SphereGeometry(0.10, 10, 10),
+    new THREE.MeshStandardMaterial({color:petalColor}));
+  petal.position.y = 0.42; fg.add(petal);
+  fg.position.set(68 + (fi%3)*1.2, 0, -32 - Math.floor(fi/3)*1.2);
+  scene.add(fg);
+  flowers.push({group:fg, watered:false});
+}
+
+// آبپاش
+(function(){
+  var g = new THREE.Group();
+  var b = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, 0.20, 10),
+    new THREE.MeshStandardMaterial({color:0x4a8a4a, metalness:0.6}));
+  b.position.y = 0.1; g.add(b);
+  g.position.set(68, 0.9, -28);
+  scene.add(g);
+})();
+
+// بسته‌های پیک
+for(var pi=0; pi<3; pi++){
+  var pkg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.25, 0.28),
+    new THREE.MeshStandardMaterial({color:0x9a6a3a, roughness:0.9}));
+  pkg.position.set(28 + pi*0.6, 0.13, 63);
+  pkg.castShadow = true;
+  scene.add(pkg);
+}
+
+// سندان آهنگری
+(function(){
+  var anvil = new THREE.Group();
+  var top = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.4),
+    new THREE.MeshStandardMaterial({color:0x2a2a2a, metalness:0.9, roughness:0.5}));
+  top.position.y = 0.5; top.castShadow = true;
+  anvil.add(top);
+  var base = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 0.4, 10),
+    new THREE.MeshStandardMaterial({color:0x1a1a1a, metalness:0.9}));
+  base.position.y = 0.2;
+  anvil.add(base);
+  anvil.position.set(-72, 0, 20);
+  scene.add(anvil);
+})();
+
+// ==========================================================================
+// داخل خانه
+// ==========================================================================
+var HOME_ORIGIN = new THREE.Vector3(0, 100, 0);
+var homeGroup = new THREE.Group();
+homeGroup.position.copy(HOME_ORIGIN);
+homeGroup.visible = false;
+scene.add(homeGroup);
+homeGroup.userData = {};
+
+(function buildHomeInterior(){
+  var W = 12, H = 3, D = 12;
+  var floorMat = new THREE.MeshStandardMaterial({color:0x8a6a48, roughness:0.85});
+  var wallMat = new THREE.MeshStandardMaterial({color:0xe8dcc0, roughness:0.9});
+  var ceilMat = new THREE.MeshStandardMaterial({color:0xd8c8a8, roughness:0.95});
+
+  var floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), floorMat);
+  floor.rotation.x = -Math.PI/2; floor.receiveShadow = true;
+  homeGroup.add(floor);
+
+  var ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), ceilMat);
+  ceil.rotation.x = Math.PI/2; ceil.position.y = H;
+  homeGroup.add(ceil);
+
+  function wall(px, pz, w, rotY){
+    var m = new THREE.Mesh(new THREE.PlaneGeometry(w, H), wallMat);
+    m.position.set(px, H/2, pz);
+    m.rotation.y = rotY;
+    m.receiveShadow = true;
+    homeGroup.add(m);
+  }
+  wall(0, -D/2, W, 0);
+  wall(0, D/2, W, Math.PI);
+  wall(-W/2, 0, D, Math.PI/2);
+  wall(W/2, 0, D, -Math.PI/2);
+
+  // فرش
+  var rug = new THREE.Mesh(new THREE.PlaneGeometry(6, 4),
+    new THREE.MeshStandardMaterial({color:0x8a3a3a, roughness:0.95}));
+  rug.rotation.x = -Math.PI/2; rug.position.y = 0.01;
+  homeGroup.add(rug);
+
+  // مبل
+  var cm = new THREE.MeshStandardMaterial({color:0x6a3a2a, roughness:0.85});
+  var sofa = new THREE.Group();
+  var seat = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.4, 1.0), cm);
+  seat.position.y = 0.4; seat.castShadow = true;
+  sofa.add(seat);
+  var back = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.2), cm);
+  back.position.set(0, 0.95, -0.4); back.castShadow = true;
+  sofa.add(back);
+  sofa.position.set(-3.5, 0, 2.5);
+  homeGroup.add(sofa);
+
+  // میز
+  var tableTop = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.08, 1.0),
+    new THREE.MeshStandardMaterial({color:0x6a4a30, roughness:0.7}));
+  tableTop.position.set(-3.5, 0.55, 3.2);
+  tableTop.castShadow = true;
+  homeGroup.add(tableTop);
+
+  // تلویزیون
+  var tvG = new THREE.Group();
+  var tvBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.35),
+    new THREE.MeshStandardMaterial({color:0x1a1a1a, metalness:0.6}));
+  tvBase.position.y = 0.04;
+  tvG.add(tvBase);
+  var tvStand = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, 0.08),
+    new THREE.MeshStandardMaterial({color:0x1a1a1a, metalness:0.6}));
+  tvStand.position.y = 0.25;
+  tvG.add(tvStand);
+  var tvBody = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.2, 0.1),
+    new THREE.MeshStandardMaterial({color:0x1a1a1a, roughness:0.4, metalness:0.5}));
+  tvBody.position.y = 1.0; tvBody.castShadow = true;
+  tvG.add(tvBody);
+  var tvScreenMat = new THREE.MeshStandardMaterial({color:0x0a0a10, emissive:0x000000, emissiveIntensity:0});
+  var tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(1.85, 1.05), tvScreenMat);
+  tvScreen.position.set(0, 1.0, 0.052);
+  tvG.add(tvScreen);
+  tvG.position.set(-3.5, 0, 5.5);
+  tvG.rotation.y = Math.PI;
+  homeGroup.add(tvG);
+  homeGroup.userData.tvScreenMat = tvScreenMat;
+
+  // یخچال
+  var fm = new THREE.MeshStandardMaterial({color:0xd8d8d0, roughness:0.4, metalness:0.3});
+  var fridgeG = new THREE.Group();
+  var fb = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.0, 0.7), fm);
+  fb.position.y = 1.0; fb.castShadow = true;
+  fridgeG.add(fb);
+  var fd = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.25, 0.05), fm);
+  fd.position.set(0, 1.35, 0.36);
+  fridgeG.add(fd);
+  fridgeG.position.set(5.0, 0, 4.0);
+  fridgeG.rotation.y = -Math.PI/2;
+  homeGroup.add(fridgeG);
+
+  // تخت
+  var bedG = new THREE.Group();
+  var bedFrame = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.4, 1.4),
+    new THREE.MeshStandardMaterial({color:0x6a4a30, roughness:0.85}));
+  bedFrame.position.y = 0.2; bedFrame.castShadow = true;
+  bedG.add(bedFrame);
+  var mattress = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.25, 1.3),
+    new THREE.MeshStandardMaterial({color:0xf0ece0, roughness:0.95}));
+  mattress.position.y = 0.5;
+  bedG.add(mattress);
+  bedG.position.set(-5.0, 0, -3.5);
+  homeGroup.add(bedG);
+
+  // قلیون
+  var hookahG = new THREE.Group();
+  var hBase = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12),
+    new THREE.MeshStandardMaterial({color:0xc8a040, metalness:0.7}));
+  hBase.position.y = 0.28; hBase.castShadow = true;
+  hookahG.add(hBase);
+  var hStem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.8, 10),
+    new THREE.MeshStandardMaterial({color:0x8a6a30, metalness:0.8}));
+  hStem.position.y = 0.9;
+  hookahG.add(hStem);
+  hookahG.position.set(-1.5, 0.55, 3.2);
+  homeGroup.add(hookahG);
+
+  // لامپ
+  var light = new THREE.PointLight(0xffd090, 0.0, 15);
+  light.position.set(0, H - 0.5, 0);
+  homeGroup.add(light);
+  homeGroup.userData.light = light;
+})();
+
+// ==========================================================================
+// آسمان
+// ==========================================================================
+var skyMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide,
+  uniforms: {
+    topColor: {value: new THREE.Color(0x3a7ab8)},
+    bottomColor: {value: new THREE.Color(0xcfd8e0)},
+    offset: {value: 40},
+    exponent: {value: 0.7}
+  },
+  vertexShader: 'varying vec3 vW; void main(){ vec4 wp = modelMatrix * vec4(position,1.0); vW = wp.xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+  fragmentShader: 'uniform vec3 topColor; uniform vec3 bottomColor; uniform float offset; uniform float exponent; varying vec3 vW; void main(){ float h = normalize(vW + offset).y; gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h,0.0), exponent), 0.0)), 1.0); }'
+});
+var sky = new THREE.Mesh(new THREE.SphereGeometry(400, 24, 12), skyMat);
+scene.add(sky);
+
+var sunDisc = new THREE.Mesh(
+  new THREE.CircleGeometry(6, 24),
+  new THREE.MeshBasicMaterial({color:0xfff0c0, transparent:true, opacity:0.9})
+);
+scene.add(sunDisc);
+
+// ==========================================================================
+// HUD
+// ==========================================================================
+var timeAccum = 0;
+var dayLabelEl = document.getElementById('dayLabel');
+var timeLabelEl = document.getElementById('timeLabel');
+var moneyEl = document.getElementById('money');
+var invEl = document.getElementById('inv');
+var badgeEl = document.getElementById('dayBadge');
+var promptEl = document.getElementById('prompt');
+var toastEl = document.getElementById('toast');
+var energyFill = document.getElementById('energyFill');
+
+function isShepherdDay(){ return SHEPHERD_DAYS.indexOf(state.day) !== -1; }
+
+function updateHUD(){
+  dayLabelEl.textContent = DAYS[state.day];
+  timeLabelEl.textContent = String(state.hour).padStart(2,'0') + ':' + String(Math.floor(state.minute)).padStart(2,'0');
+  moneyEl.textContent = '💰 ' + Math.round(state.money);
+  energyFill.style.width = state.energy + '%';
+  badgeEl.style.display = isShepherdDay() ? 'block' : 'none';
+  var inv = '';
+  if(state.hasBasket) inv += '🧺 ' + state.basketFruit + '/20<br>';
+  if(state.tool) inv += '🔧 ' + state.tool + '<br>';
+  if(state.carrying) inv += '📦 ' + state.carrying + '<br>';
+  if(state.job) inv += '💼 ' + state.job.label + ' (' + state.job.step + '/' + state.job.max + ')<br>';
+  if(state.insideHome) inv += '🏠 خانه<br>';
+  invEl.innerHTML = inv || '🎒 خالی';
+}
+
+function showToast(msg, dur){
+  dur = dur || 2400;
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  if(toastEl._t) clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(function(){ toastEl.classList.remove('show'); }, dur);
+}
+
+function onNewDay(){
+  showToast('☀️ ' + DAYS[state.day]);
+  state.sheepFollowing = false;
+  state.sheepInPasture = false;
+  state.waitingForNight = false;
+  state.hasBasket = false;
+  state.basketFruit = 0;
+  state.job = null;
+  state.carrying = null;
+  state.tool = null;
+  setPlayerTool(null);
+  sheep.forEach(function(s){ s.group.position.set(s.home.x, 0, s.home.z); });
+  pomTrees.forEach(function(t){ t.remaining = 20; });
+  flowers.forEach(function(f){ f.watered = false; });
+}
+
+function advanceTime(m){
+  state.minute += m;
+  state.energy = Math.max(0, state.energy - m * 0.06);
+  while(state.minute >= 60){ state.minute -= 60; state.hour++; }
+  while(state.hour >= 24){
+    state.hour -= 24;
+    state.day = (state.day + 1) % 7;
+    onNewDay();
+  }
+}
+
+// دیالوگ
+var dialogEl = document.getElementById('dialog');
+var dialogName = document.getElementById('dialogName');
+var dialogText = document.getElementById('dialogText');
+var dialogButtons = document.getElementById('dialogButtons');
+
+function showDialog(name, text, buttons){
+  state.dialogueOpen = true;
+  dialogEl.classList.remove('hidden');
+  dialogName.textContent = name;
+  dialogText.textContent = text;
+  dialogButtons.innerHTML = '';
+  var btns = buttons || [{label:'باشه', action: closeDialog}];
+  btns.forEach(function(b){
+    var el = document.createElement('button');
+    el.className = 'dbtn';
+    el.textContent = b.label;
+    el.onclick = function(ev){
+      ev.stopPropagation();
+      closeDialog();
+      if(b.action) b.action();
+    };
+    dialogButtons.appendChild(el);
+  });
+}
+function closeDialog(){
+  state.dialogueOpen = false;
+  dialogEl.classList.add('hidden');
+}
+
+// مینی‌گیم
+var mg = {active:false, timer:0, targetPos:0.5, targetWidth:0.2, cursor:0, onWin:null, onLose:null, speed:1};
+function startMiniGame(title, desc, onWin, onLose, speed){
+  mg.active = true;
+  mg.timer = 0;
+  mg.targetPos = 0.3 + Math.random()*0.4;
+  mg.targetWidth = 0.18 + Math.random()*0.1;
+  mg.cursor = 0;
+  mg.onWin = onWin;
+  mg.onLose = onLose;
+  mg.speed = speed || 1;
+  document.getElementById('miniGame').classList.add('on');
+  document.getElementById('mgTitle').textContent = title;
+  document.getElementById('mgDesc').textContent = desc;
+  var t = document.getElementById('mgTarget');
+  t.style.left = (mg.targetPos*100) + '%';
+  t.style.width = (mg.targetWidth*100) + '%';
+  document.getElementById('mgCursor').style.left = '0%';
+}
+document.getElementById('mgHit').onclick = function(){
+  if(!mg.active) return;
+  var d = Math.abs(mg.cursor - mg.targetPos);
+  if(d < mg.targetWidth / 2 + 0.04){
+    mg.active = false;
+    document.getElementById('miniGame').classList.remove('on');
+    if(mg.onWin) mg.onWin();
+  } else {
+    mg.active = false;
+    document.getElementById('miniGame').classList.remove('on');
+    if(mg.onLose) mg.onLose();
+  }
+};
+document.getElementById('mgCancel').onclick = function(){
+  mg.active = false;
+  document.getElementById('miniGame').classList.remove('on');
+};
+
+// ورود/خروج خانه
+function enterHome(){
+  if(state.insideHome) return;
+  state.insideHome = true;
+  homeGroup.visible = true;
+  player._savedPos = player.pos.clone();
+  player._savedRot = player.rot;
+  player.pos.set(HOME_ORIGIN.x, HOME_ORIGIN.y, HOME_ORIGIN.z + 3);
+  player.rot = 0;
+  showToast('🏠 خونه');
+  updateHUD();
+}
+function exitHome(){
+  if(!state.insideHome) return;
+  state.insideHome = false;
+  homeGroup.visible = false;
+  player.pos.copy(player._savedPos || new THREE.Vector3(0, 0, 25));
+  player.rot = player._savedRot || Math.PI;
+  state.sitting = false;
+  showToast('🚪 بیرون');
+  updateHUD();
+}
+function exitHomeSilent(){
+  state.insideHome = false;
+  homeGroup.visible = false;
+}
+
+// ==========================================================================
+// مناطق تعامل
+// ==========================================================================
+var interactables = [];
+function addInteract(x, y, z, r, label, fn){
+  interactables.push({x:x, y:y, z:z, r:r, label:label, fn:fn, inHome: y > 50});
+}
+
+var O = HOME_ORIGIN;
+
+// داخل خانه
+addInteract(O.x, O.y, O.z + 5.7, 1.5, 'خروج از خانه', exitHome);
+addInteract(O.x - 3.5, O.y, O.z + 2.5, 1.8, 'نشستن روی مبل', function(){
+  state.sitting = !state.sitting;
+  showToast(state.sitting ? '🛋️ نشستی' : 'بلند شدی');
+});
+addInteract(O.x - 3.5, O.y, O.z + 5.5, 2.0, 'تلویزیون', function(){
+  document.getElementById('tvScreen').classList.add('on');
+  var msgs = [
+    '📺 اخبار دهکده\nانار: ۵۰۰۰ تومان',
+    '📺 فوتبال\nدهکده vs کوهستان',
+    '📺 مستند\nبزهای کوهی',
+    '📺 فیلم شب\nشب‌های انارستان',
+    '📺 تبلیغات\n۲۰٪ تخفیف'
+  ];
+  document.getElementById('tvTxt').innerText = msgs[Math.floor(Math.random()*msgs.length)];
+  if(homeGroup.userData.tvScreenMat){
+    homeGroup.userData.tvScreenMat.emissive = new THREE.Color(0x88aaff);
+    homeGroup.userData.tvScreenMat.emissiveIntensity = 0.6;
+  }
+});
+addInteract(O.x + 5.0, O.y, O.z + 4.0, 1.8, 'یخچال', function(){
+  if(state.energy > 90){ showToast('😋 سیری'); return; }
+  state.energy = Math.min(100, state.energy + 25);
+  showToast('🍔 خوردی — +۲۵ انرژی');
+  updateHUD();
+});
+addInteract(O.x - 5.0, O.y, O.z - 3.5, 1.8, 'تخت خواب', function(){
+  showDialog('🛏️', 'بخوابی؟', [
+    {label:'تا صبح', action: function(){ exitHomeSilent(); sleepTo(6,0); }},
+    {label:'تا ۳:۳۰', action: function(){ exitHomeSilent(); sleepTo(3,30); }},
+    {label:'نه'}
+  ]);
+});
+addInteract(O.x - 1.5, O.y, O.z + 3.2, 1.5, 'قلیون', function(){
+  document.getElementById('hookahPanel').classList.add('on');
+});
+document.getElementById('hookahYes').onclick = function(){
+  document.getElementById('hookahPanel').classList.remove('on');
+  if(state.money < 50){ showToast('💸 کم داری'); return; }
+  state.money -= 50;
+  state.energy = Math.min(100, state.energy + 30);
+  smokeBurst();
+  showToast('💨 +۳۰ انرژی، -۵۰ سکه');
+  updateHUD();
+};
+document.getElementById('hookahNo').onclick = function(){
+  document.getElementById('hookahPanel').classList.remove('on');
+};
+
+// بیرون
+addInteract(0, 0, 32, 4.5, 'ورود به خانه', function(){
+  var h = state.hour;
+  if(h >= 8 || h < 4) enterHome();
+  else showToast('⏰ ساعت ۸ شب به بعد بیا');
+});
+
+// ============ شغل ۱: انارچینی ============
+addInteract(0, 0, -22, 3.5, 'باغدار رحیم', function(){
+  if(isShepherdDay()){ showDialog('باغدار', 'امروز چوپانیه!', [{label:'باشه'}]); return; }
+  if(state.job && state.job.type === 'pom'){
+    showDialog('باغدار', 'کارت ادامه داره: ' + state.job.step + '/3', [{label:'ادامه'}]);
+    return;
+  }
+  showDialog('باغدار رحیم', 'برای انار چینی اومدی؟\n۳ سبد، هر کدوم ۲۰ انار. ۵۰۰ دستمزد.', [
+    {label:'بله', action: function(){
+      state.job = {type:'pom', step:0, max:3, label:'انارچینی'};
+      state.hasBasket = false;
+      state.basketFruit = 0;
+      showToast('🍎 ساعت ۴ تا ۶ صبح بیا، سبد کنار در باغ');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(3, 0, -24, 1.8, 'برداشتن سبد', function(){
+  if(!state.job || state.job.type !== 'pom'){ showToast('اول از باغدار کار بگیر'); return; }
+  if(state.hour < 4 || state.hour >= 6){ showToast('⏰ فقط ۴ تا ۶ صبح'); return; }
+  if(state.basketFruit >= 20){
+    state.job.step++;
+    state.basketFruit = 0;
+    state.hasBasket = false;
+    if(state.job.step >= 3){
+      state.money += 500;
+      state.job = null;
+      showToast('🎉 کار تموم! +۵۰۰');
+    } else {
+      showToast('✅ سبد (' + state.job.step + '/3)');
+    }
+    updateHUD();
+    return;
+  }
+  state.hasBasket = true;
+  state.basketFruit = 0;
+  showToast('🧺 سبد برداشتی');
+  updateHUD();
+});
+pomTrees.forEach(function(t){
+  var p = t.group.position;
+  addInteract(p.x, 0, p.z, 2.0, 'چیدن انار', function(){
+    if(!state.job || state.job.type !== 'pom'){ showToast('اول کار بگیر'); return; }
+    if(!state.hasBasket){ showToast('اول سبد بردار'); return; }
+    if(state.hour < 4 || state.hour >= 6){ showToast('⏰ فقط ۴ تا ۶ صبح'); return; }
+    if(state.basketFruit >= 20){ showToast('سبد پره'); return; }
+    if(t.remaining <= 0){ showToast('خالی'); return; }
+    var take = Math.min(t.remaining, 20 - state.basketFruit);
+    for(var i=0; i<take; i++){
+      var f = t.fruits.pop();
+      if(f) t.group.remove(f);
+    }
+    t.remaining -= take;
+    state.basketFruit += take;
+    showToast('🍎 +' + take + ' (' + state.basketFruit + '/20)');
+    updateHUD();
+  });
+});
+
+// ============ شغل ۲: چوپانی ============
+addInteract(58, 0, -8, 3.5, 'عمو قنبر', function(){
+  if(!isShepherdDay()){
+    showDialog('عمو قنبر', 'امروز چوپانی نیست. شنبه/سه‌شنبه/جمعه', [{label:'باشه'}]);
+    return;
+  }
+  if(state.job && state.job.type === 'sheep'){
+    showDialog('عمو قنبر', state.sheepInPasture ? 'بذار بچرن تا غروب' : 'ببرشون چراگاه', [{label:'باشه'}]);
+    return;
+  }
+  showDialog('عمو قنبر', 'گله رو ببر چراگاه سبز. ۷۰۰ دستمزد.', [
+    {label:'بله', action: function(){
+      state.job = {type:'sheep', step:0, max:1, label:'چوپانی'};
+      state.sheepFollowing = true;
+      state.sheepInPasture = false;
+      showToast('🐑 گله دنبالت میاد');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+
+// ============ شغل ۳: آرایشگری ============
+addInteract(-45, 0, 25, 3.5, 'آرایشگر', function(){
+  if(state.job && state.job.type === 'barber'){ showToast('در حال کار'); return; }
+  showDialog('آرایشگر', 'قیچی رو از میز بردار، بعد ۲ بار کوتاه کن.\n۷۰۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'barber', step:0, max:2, label:'آرایشگری'};
+      showToast('✂️ قیچی رو از میز بردار');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(-43, 0.9, 24, 1.5, 'برداشتن قیچی', function(){
+  if(!state.job || state.job.type !== 'barber'){ showToast('اول شغل بگیر'); return; }
+  if(state.tool === 'scissors'){ showToast('داری قیچی'); return; }
+  state.tool = 'scissors';
+  setPlayerTool('scissors');
+  showToast('✂️ قیچی برداشتی');
+  updateHUD();
+});
+addInteract(-45, 0, 23, 2.5, 'مشتری — کوتاه کردن مو', function(){
+  if(!state.job || state.job.type !== 'barber'){ showToast('اول شغل بگیر'); return; }
+  if(state.tool !== 'scissors'){ showToast('اول قیچی بردار'); return; }
+  if(state.job.step === 0){
+    startMiniGame('✂️ کوتاه کردن', 'روی نوار سبز بزن',
+      function(){ state.job.step++; showToast('✅ حالا اصلاح'); updateHUD(); },
+      function(){ showToast('❌ دوباره'); });
+  } else if(state.job.step === 1){
+    startMiniGame('🪒 اصلاح', 'روی نوار سبز بزن',
+      function(){
+        state.money += 700;
+        state.job = null;
+        state.tool = null;
+        setPlayerTool(null);
+        showToast('🎉 تموم! +۷۰۰');
+        updateHUD();
+      },
+      function(){ showToast('❌ دوباره'); });
+  }
+});
+
+// ============ شغل ۴: جوشکاری ============
+addInteract(-45, 0, -5, 3.5, 'استاد کریم', function(){
+  if(state.job && state.job.type === 'weld'){ showToast('در حال کار'); return; }
+  showDialog('استاد کریم', 'تورچ رو از میز بردار، ۳ نقطه رو جوش بده.\n۶۰۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'weld', step:0, max:3, label:'جوشکاری'};
+      showToast('🔥 تورچ رو از میز بردار');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(-42, 0.9, -5, 1.5, 'برداشتن تورچ', function(){
+  if(!state.job || state.job.type !== 'weld'){ showToast('اول شغل بگیر'); return; }
+  if(state.tool === 'torch'){ showToast('داری'); return; }
+  state.tool = 'torch';
+  setPlayerTool('torch');
+  showToast('🔥 تورچ برداشتی');
+  updateHUD();
+});
+addInteract(-45, 0, -6, 1.8, 'جوش دادن فلز', function(){
+  if(!state.job || state.job.type !== 'weld'){ showToast('اول شغل بگیر'); return; }
+  if(state.tool !== 'torch'){ showToast('اول تورچ بردار'); return; }
+  var stepLabel = state.job.step + 1;
+  startMiniGame('🔥 جوش ' + stepLabel, 'در لحظه درست بزن',
+    function(){
+      state.job.step++;
+      if(state.job.step >= 3){
+        state.money += 600;
+        state.job = null;
+        state.tool = null;
+        setPlayerTool(null);
+        showToast('🎉 جوش تموم! +۶۰۰');
+      } else {
+        showToast('✅ نقطه بعدی');
+      }
+      updateHUD();
+    },
+    function(){ showToast('❌ بد جوش خورد!'); }, 1.4);
+});
+
+// ============ شغل ۵: سوپرمارکت ============
+addInteract(45, 0, 25, 3.5, 'فروشنده', function(){
+  if(state.job && state.job.type === 'shop'){ showToast('در حال کار'); return; }
+  showDialog('فروشنده', '۳ جعبه رو از انبار بیار روی قفسه.\n۴۰۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'shop', step:0, max:3, label:'سوپرمارکت'};
+      showToast('📦 جعبه‌ها از انبار');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(48, 0, 27, 2.0, 'برداشتن جعبه', function(){
+  if(!state.job || state.job.type !== 'shop'){ showToast('اول شغل بگیر'); return; }
+  if(state.carrying){ showToast('دستات پره'); return; }
+  state.carrying = 'جعبه';
+  showToast('📦 برداشتی');
+  updateHUD();
+});
+addInteract(42, 0, 23, 2.0, 'چیدن روی قفسه', function(){
+  if(!state.job || state.job.type !== 'shop'){ showToast('اول شغل بگیر'); return; }
+  if(!state.carrying){ showToast('اول جعبه بردار'); return; }
+  state.carrying = null;
+  state.job.step++;
+  if(state.job.step >= 3){
+    state.money += 400;
+    state.job = null;
+    showToast('🎉 +۴۰۰');
+  } else {
+    showToast('✅ (' + state.job.step + '/3)');
+  }
+  updateHUD();
+});
+
+// ============ شغل ۶: ساختمانی ============
+addInteract(-45, 0, -30, 4, 'سرکارگر', function(){
+  if(state.job && state.job.type === 'build'){ showToast('در حال کار'); return; }
+  showDialog('سرکارگر', '۴ آجر ببر اونور. مراقب گرد و خاک باش!\n۸۰۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'build', step:0, max:4, label:'ساختمانی'};
+      showToast('🧱 آجرها از این طرف');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(-48, 0, -32, 2.5, 'برداشتن آجر', function(){
+  if(!state.job || state.job.type !== 'build'){ showToast('اول شغل بگیر'); return; }
+  if(state.carrying){ showToast('دستات پره'); return; }
+  state.carrying = 'آجر';
+  showToast('🧱 برداشتی');
+  updateHUD();
+});
+addInteract(-40, 0, -38, 2.5, 'گذاشتن آجر', function(){
+  if(!state.job || state.job.type !== 'build'){ showToast('اول شغل بگیر'); return; }
+  if(!state.carrying){ showToast('اول آجر بردار'); return; }
+  state.carrying = null;
+  state.job.step++;
+  if(state.job.step >= 4){
+    state.money += 800;
+    state.job = null;
+    showToast('🎉 +۸۰۰');
+  } else {
+    showToast('✅ (' + state.job.step + '/4)');
+  }
+  updateHUD();
+});
+
+// ============ شغل ۷: ماهیگیری ============
+var fishingBite = false;
+var fishingTimer = 0;
+addInteract(20, 0, -80, 3, 'ماهیگیری', function(){
+  if(state.job && state.job.type === 'fish'){ showToast('صبر کن'); return; }
+  showDialog('🎣', '۳ ماهی بگیر. دکمه E رو در لحظه بزن.\n۵۰۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'fish', step:0, max:3, label:'ماهیگیری'};
+      state.tool = 'rod';
+      setPlayerTool('rod');
+      fishingTimer = 0;
+      fishingBite = false;
+      showToast('🎣 صبر کن...');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(20, 0, -78, 2, 'کشیدن ماهی', function(){
+  if(!state.job || state.job.type !== 'fish') return;
+  if(!fishingBite){ showToast('هنوز نیومده'); return; }
+  startMiniGame('🎣 ماهی!', 'سریع بزن',
+    function(){
+      state.job.step++;
+      fishingBite = false;
+      fishingTimer = 0;
+      if(state.job.step >= 3){
+        state.money += 500;
+        state.job = null;
+        state.tool = null;
+        setPlayerTool(null);
+        showToast('🎉 ۳ ماهی! +۵۰۰');
+      } else {
+        showToast('🐟 (' + state.job.step + '/3)');
+      }
+      updateHUD();
+    },
+    function(){
+      fishingBite = false;
+      fishingTimer = 0;
+      showToast('❌ فرار کرد');
+    }, 2.0);
+});
+
+// ============ شغل ۸: آهنگری ============
+addInteract(-70, 0, 25, 3.5, 'آهنگر', function(){
+  if(state.job && state.job.type === 'smith'){ showToast('در حال کار'); return; }
+  showDialog('آهنگر', 'چکش رو بردار، برو طرف سندان، ۳ بار بکوب.\n۷۰۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'smith', step:0, max:3, label:'آهنگری'};
+      showToast('🔨 چکش رو بردار');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(-70, 0.9, 22, 1.5, 'برداشتن چکش', function(){
+  if(!state.job || state.job.type !== 'smith'){ showToast('اول شغل بگیر'); return; }
+  state.tool = 'hammer';
+  setPlayerTool('hammer');
+  showToast('🔨 برداشتی');
+  updateHUD();
+});
+addInteract(-72, 0, 20, 2, 'کوبیدن روی سندان', function(){
+  if(!state.job || state.job.type !== 'smith'){ showToast('اول شغل بگیر'); return; }
+  if(state.tool !== 'hammer'){ showToast('اول چکش بردار'); return; }
+  startMiniGame('🔨 ضربه ' + (state.job.step+1), 'در لحظه بزن',
+    function(){
+      state.job.step++;
+      if(state.job.step >= 3){
+        state.money += 700;
+        state.job = null;
+        state.tool = null;
+        setPlayerTool(null);
+        showToast('🎉 تموم! +۷۰۰');
+      } else {
+        showToast('✅ بعدی');
+      }
+      updateHUD();
+    },
+    function(){ showToast('❌ بد خورد'); }, 1.3);
+});
+
+// ============ شغل ۹: نجاری ============
+addInteract(-70, 0, -5, 3.5, 'نجار', function(){
+  if(state.job && state.job.type === 'wood'){ showToast('در حال کار'); return; }
+  showDialog('نجار', 'ارّه رو بردار، ۳ چوب ببر.\n۶۵۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'wood', step:0, max:3, label:'نجاری'};
+      showToast('🪚 ارّه رو بردار');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(-70, 0.9, -8, 1.5, 'برداشتن ارّه', function(){
+  if(!state.job || state.job.type !== 'wood'){ showToast('اول شغل بگیر'); return; }
+  state.tool = 'saw';
+  setPlayerTool('saw');
+  showToast('🪚 برداشتی');
+  updateHUD();
+});
+addInteract(-71, 0, -12, 2, 'بریدن چوب', function(){
+  if(!state.job || state.job.type !== 'wood'){ showToast('اول شغل بگیر'); return; }
+  if(state.tool !== 'saw'){ showToast('اول ارّه بردار'); return; }
+  startMiniGame('🪚 برش ' + (state.job.step+1), 'روی نوار بزن',
+    function(){
+      state.job.step++;
+      if(state.job.step >= 3){
+        state.money += 650;
+        state.job = null;
+        state.tool = null;
+        setPlayerTool(null);
+        showToast('🎉 +۶۵۰');
+      } else {
+        showToast('✅ بعدی');
+      }
+      updateHUD();
+    },
+    function(){ showToast('❌ کج برید'); }, 1.2);
+});
+
+// ============ شغل ۱۰: خبازی ============
+addInteract(70, 0, 25, 3.5, 'نانوا', function(){
+  if(state.job && state.job.type === 'bakery'){ showToast('در حال کار'); return; }
+  showDialog('نانوا', 'خمیر رو ورز بده، توی تنور بذار، درش بیار.\n۵۵۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'bakery', step:0, max:3, label:'خبازی'};
+      state.tool = 'dough';
+      setPlayerTool('dough');
+      showToast('🥖 خمیر دستته — برو ورز بده');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(72, 0, 23, 2, 'ورز دادن خمیر', function(){
+  if(!state.job || state.job.type !== 'bakery'){ showToast('اول شغل بگیر'); return; }
+  if(state.tool !== 'dough'){ showToast('خمیر نداری'); return; }
+  startMiniGame('🥖 ورز دادن', 'روی نوار بزن',
+    function(){
+      state.tool = 'dough_ready';
+      setPlayerTool('dough_ready');
+      showToast('✅ ببرش تنور');
+      updateHUD();
+    },
+    function(){ showToast('❌ بد ورز شد'); }, 1.1);
+});
+addInteract(68, 0, 22, 2, 'گذاشتن در تنور', function(){
+  if(!state.job || state.job.type !== 'bakery'){ showToast('اول شغل بگیر'); return; }
+  if(state.tool !== 'dough_ready'){ showToast('خمیر آماده نداری'); return; }
+  state.tool = 'bread_baking';
+  setPlayerTool('bread_baking');
+  showToast('🔥 گذاشتی — صبر کن');
+  updateHUD();
+  setTimeout(function(){
+    if(state.job && state.job.type === 'bakery' && state.tool === 'bread_baking'){
+      showToast('🍞 آماده! درش بیار');
+    }
+  }, 3000);
+});
+addInteract(66, 0, 24, 2, 'درآوردن نون', function(){
+  if(!state.job || state.job.type !== 'bakery'){ showToast('اول شغل بگیر'); return; }
+  if(state.tool !== 'bread_baking'){ showToast('اول بذار تنور'); return; }
+  state.job.step++;
+  state.tool = 'dough';
+  setPlayerTool('dough');
+  if(state.job.step >= 3){
+    state.money += 550;
+    state.job = null;
+    state.tool = null;
+    setPlayerTool(null);
+    showToast('🎉 +۵۵۰');
+  } else {
+    showToast('🍞 ' + state.job.step + '/3 — خمیر بعدی');
+  }
+  updateHUD();
+});
+
+// ============ شغل ۱۱: باغبانی گل ============
+addInteract(70, 0, -30, 3.5, 'گلفروش', function(){
+  if(state.job && state.job.type === 'garden'){ showToast('در حال کار'); return; }
+  showDialog('گلفروش', '۶ گل رو آب بده.\n۵۰۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'garden', step:0, max:6, label:'باغبانی'};
+      showToast('💧 آبپاش رو بردار');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(68, 0.9, -28, 1.5, 'برداشتن آبپاش', function(){
+  if(!state.job || state.job.type !== 'garden'){ showToast('اول شغل بگیر'); return; }
+  state.tool = 'watering';
+  setPlayerTool('watering');
+  showToast('💧 برداشتی');
+  updateHUD();
+});
+flowers.forEach(function(f, idx){
+  var p = f.group.position;
+  addInteract(p.x, 0, p.z, 1.5, 'آب دادن به گل', function(){
+    if(!state.job || state.job.type !== 'garden'){ showToast('اول شغل بگیر'); return; }
+    if(state.tool !== 'watering'){ showToast('آبپاش نداره'); return; }
+    if(f.watered){ showToast('قبلاً آب دادی'); return; }
+    f.watered = true;
+    state.job.step++;
+    if(state.job.step >= 6){
+      state.money += 500;
+      state.job = null;
+      state.tool = null;
+      setPlayerTool(null);
+      showToast('🎉 +۵۰۰');
+    } else {
+      showToast('💧 (' + state.job.step + '/6)');
+    }
+    updateHUD();
+  });
+});
+
+// ============ شغل ۱۲: پیک موتوری ============
+addInteract(30, 0, 65, 3.5, 'پیک موتوری', function(){
+  if(state.job && state.job.type === 'courier'){ showToast('در حال کار'); return; }
+  showDialog('پیک', '۳ بسته رو بگیر و به مشتری‌ها برسون.\n۶۰۰ دستمزد.', [
+    {label:'شروع', action: function(){
+      state.job = {type:'courier', step:0, max:3, label:'پیک موتوری'};
+      showToast('📦 بسته‌ها روی زمینن');
+      updateHUD();
+    }},
+    {label:'نه'}
+  ]);
+});
+addInteract(28, 0, 63, 2, 'برداشتن بسته', function(){
+  if(!state.job || state.job.type !== 'courier'){ showToast('اول شغل بگیر'); return; }
+  if(state.carrying){ showToast('دستات پره'); return; }
+  state.carrying = 'بسته';
+  state.tool = 'package';
+  setPlayerTool('package');
+  showToast('📦 برداشتی — ببر به کافه (۲۰،۴۰)');
+  updateHUD();
+});
+addInteract(20, 0, 40, 3.5, 'تحویل به کافه', function(){
+  if(!state.job || state.job.type !== 'courier'){ showToast('اول شغل بگیر'); return; }
+  if(!state.carrying){ showToast('بسته نداری'); return; }
+  state.carrying = null;
+  state.tool = null;
+  setPlayerTool(null);
+  state.job.step++;
+  if(state.job.step >= 3){
+    state.money += 600;
+    state.job = null;
+    showToast('🎉 +۶۰۰');
+  } else {
+    showToast('✅ ' + state.job.step + '/3 — برگرد پیش پیک');
+  }
+  updateHUD();
+});
+
+// خواب
+function sleepTo(h, m){
+  if(h < state.hour || (h === state.hour && m <= state.minute)){
+    state.day = (state.day + 1) % 7;
+    onNewDay();
+  }
+  state.hour = h;
+  state.minute = m;
+  state.energy = 100;
+  showToast('😴 بیدار — ' + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0'));
+  updateHUD();
+}
+
+// دود قلیون
+function smokeBurst(){
+  var N = 30;
+  var geo = new THREE.BufferGeometry();
+  var pos = new Float32Array(N*3);
+  for(var i=0; i<N; i++){
+    pos[i*3] = HOME_ORIGIN.x - 1.5 + (Math.random()-0.5)*0.3;
+    pos[i*3+1] = HOME_ORIGIN.y + 1.6;
+    pos[i*3+2] = HOME_ORIGIN.z + 3.2 + (Math.random()-0.5)*0.3;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  var mat = new THREE.PointsMaterial({color:0xd8d8e8, size:0.15, transparent:true, opacity:0.7, depthWrite:false});
+  var p = new THREE.Points(geo, mat);
+  scene.add(p);
+  var life = 1.5;
+  var vel = [];
+  for(var j=0; j<N; j++) vel.push({x:(Math.random()-0.5)*0.3, y:0.5+Math.random()*0.4, z:(Math.random()-0.5)*0.3});
+  var anim = function(){
+    life -= 0.03;
+    if(life <= 0){
+      scene.remove(p);
+      p.geometry.dispose();
+      p.material.dispose();
+      return;
+    }
+    var a = p.geometry.attributes.position.array;
+    for(var k=0; k<N; k++){
+      a[k*3] += vel[k].x*0.03;
+      a[k*3+1] += vel[k].y*0.03;
+      a[k*3+2] += vel[k].z*0.03;
+    }
+    p.geometry.attributes.position.needsUpdate = true;
+    p.material.opacity = life / 1.5 * 0.7;
+    requestAnimationFrame(anim);
+  };
+  anim();
+}
+
+// ==========================================================================
+// کنترل‌ها
+// ==========================================================================
+var joyEl = document.getElementById('joy');
+var joyKnob = document.getElementById('joyKnob');
+var lookZone = document.getElementById('lookZone');
+var joy = {active:false, id:null, cx:0, cy:0, dx:0, dy:0};
+var runHeld = false;
+
+function joyStart(e){
+  var t = e.changedTouches ? e.changedTouches[0] : e;
+  if(joy.id !== null) return;
+  joy.id = (t.identifier !== undefined) ? t.identifier : 'mouse';
+  joy.active = true;
+  var r = joyEl.getBoundingClientRect();
+  joy.cx = r.left + r.width/2;
+  joy.cy = r.top + r.height/2;
+  joyMove(e);
+  e.preventDefault();
+}
+function joyMove(e){
+  if(!joy.active) return;
+  var touches = e.changedTouches || [e];
+  for(var i=0; i<touches.length; i++){
+    var t = touches[i];
+    var tid = (t.identifier !== undefined) ? t.identifier : 'mouse';
+    if(tid !== joy.id) continue;
+    var dx = t.clientX - joy.cx;
+    var dy = t.clientY - joy.cy;
+    var maxR = 45;
+    var d = Math.hypot(dx, dy);
+    var cl = Math.min(1, d/maxR);
+    var ang = Math.atan2(dy, dx);
+    var kx = Math.cos(ang)*cl*maxR;
+    var ky = Math.sin(ang)*cl*maxR;
+    joyKnob.style.transform = 'translate(calc(-50% + ' + kx + 'px), calc(-50% + ' + ky + 'px))';
+    joy.dx = Math.cos(ang)*cl;
+    joy.dy = Math.sin(ang)*cl;
+  }
+  e.preventDefault();
+}
+function joyEnd(e){
+  if(!joy.active) return;
+  var touches = e.changedTouches || [e];
+  for(var i=0; i<touches.length; i++){
+    var t = touches[i];
+    var tid = (t.identifier !== undefined) ? t.identifier : 'mouse';
+    if(tid === joy.id){
+      joy.active = false;
+      joy.id = null;
+      joy.dx = 0;
+      joy.dy = 0;
+      joyKnob.style.transform = 'translate(-50%,-50%)';
+    }
+  }
+}
+joyEl.addEventListener('touchstart', joyStart, {passive:false});
+joyEl.addEventListener('touchmove', joyMove, {passive:false});
+joyEl.addEventListener('touchend', joyEnd);
+joyEl.addEventListener('touchcancel', joyEnd);
+joyEl.addEventListener('mousedown', joyStart);
+window.addEventListener('mousemove', joyMove);
+window.addEventListener('mouseup', joyEnd);
+
+// چرخش دوربین
+var look = {active:false, id:null, lastX:0, lastY:0};
+function lookStart(e){
+  var t = e.changedTouches ? e.changedTouches[0] : e;
+  if(look.id !== null) return;
+  look.id = (t.identifier !== undefined) ? t.identifier : 'mouse';
+  look.active = true;
+  look.lastX = t.clientX;
+  look.lastY = t.clientY;
+  e.preventDefault();
+}
+function lookMove(e){
+  if(!look.active) return;
+  var touches = e.changedTouches || [e];
+  for(var i=0; i<touches.length; i++){
+    var t = touches[i];
+    var tid = (t.identifier !== undefined) ? t.identifier : 'mouse';
+    if(tid !== look.id) continue;
+    var dx = t.clientX - look.lastX;
+    var dy = t.clientY - look.lastY;
+    player.rot -= dx * 0.008;
+    player.pitch = Math.max(-0.5, Math.min(1.0, player.pitch + dy * 0.006));
+    look.lastX = t.clientX;
+    look.lastY = t.clientY;
+  }
+  e.preventDefault();
+}
+function lookEnd(e){
+  if(!look.active) return;
+  var touches = e.changedTouches || [e];
+  for(var i=0; i<touches.length; i++){
+    var t = touches[i];
+    var tid = (t.identifier !== undefined) ? t.identifier : 'mouse';
+    if(tid === look.id){
+      look.active = false;
+      look.id = null;
+    }
+  }
+}
+lookZone.addEventListener('touchstart', lookStart, {passive:false});
+lookZone.addEventListener('touchmove', lookMove, {passive:false});
+lookZone.addEventListener('touchend', lookEnd);
+lookZone.addEventListener('touchcancel', lookEnd);
+lookZone.addEventListener('mousedown', lookStart);
+window.addEventListener('mousemove', lookMove);
+window.addEventListener('mouseup', lookEnd);
+
+var btnInteract = document.getElementById('btnInteract');
+var btnRun = document.getElementById('btnRun');
+btnInteract.addEventListener('touchstart', function(e){ e.preventDefault(); tryInteract(); }, {passive:false});
+btnInteract.addEventListener('click', function(){ if(!IS_TOUCH) tryInteract(); });
+
+function runOn(e){ if(e) e.preventDefault(); runHeld = true; btnRun.classList.add('active'); }
+function runOff(e){ if(e) e.preventDefault(); runHeld = false; btnRun.classList.remove('active'); }
+btnRun.addEventListener('touchstart', runOn, {passive:false});
+btnRun.addEventListener('touchend', runOff);
+btnRun.addEventListener('touchcancel', runOff);
+btnRun.addEventListener('mousedown', runOn);
+btnRun.addEventListener('mouseup', runOff);
+btnRun.addEventListener('mouseleave', runOff);
+
+var keys = {};
+window.addEventListener('keydown', function(e){
+  keys[e.key.toLowerCase()] = true;
+  if(e.key === 'Escape' && state.dialogueOpen) closeDialog();
+  if(e.key.toLowerCase() === 'e' && !state.dialogueOpen) tryInteract();
+});
+window.addEventListener('keyup', function(e){ keys[e.key.toLowerCase()] = false; });
+
+var currentInteract = null;
+function tryInteract(){
+  if(state.dialogueOpen || state.paused || mg.active) return;
+  if(currentInteract) currentInteract.fn();
+}
+
+// گرد و خاک
+var dustZones = [{x:-45, z:-35, r:14}];
+var dustEl = document.getElementById('dust');
+function updateDust(dt){
+  var inDust = false;
+  for(var i=0; i<dustZones.length; i++){
+    var z = dustZones[i];
+    var dx = player.pos.x - z.x;
+    var dz = player.pos.z - z.z;
+    if(dx*dx + dz*dz < z.r*z.r){ inDust = true; break; }
+  }
+  if(inDust) player.dustT = Math.min(1, player.dustT + dt*2);
+  else player.dustT = Math.max(0, player.dustT - dt*1.5);
+  player.covering = player.dustT > 0.35;
+  if(player.dustT > 0.35) dustEl.classList.add('show');
+  else dustEl.classList.remove('show');
+}
+
+// ==========================================================================
+// حلقه بازی
+// ==========================================================================
+var clock = new THREE.Clock();
+var camTarget = new THREE.Vector3();
+var cameraBob = 0;
+
+function updatePlayer(dt){
+  if(state.dialogueOpen || mg.active) return;
+  var running = runHeld || keys['shift'];
+  var speed = player.speed * (running ? 1.85 : 1);
+
+  if(keys['a'] || keys['arrowleft']) player.rot += 2.4*dt;
+  if(keys['d'] || keys['arrowright']) player.rot -= 2.4*dt;
+  if(keys['arrowup']) player.pitch = Math.max(-0.5, player.pitch - 0.6*dt);
+  if(keys['arrowdown']) player.pitch = Math.min(1.0, player.pitch + 0.6*dt);
+
+  var mx = 0, my = 0;
+  if(joy.active){ mx = joy.dx; my = -joy.dy; }
+  if(keys['w']) my = 1;
+  if(keys['s']) my = -1;
+
+  var moved = false;
+  if(Math.abs(mx) > 0.05 || Math.abs(my) > 0.05){
+    var f = new THREE.Vector3(-Math.sin(player.rot), 0, -Math.cos(player.rot));
+    var r = new THREE.Vector3(Math.cos(player.rot), 0, -Math.sin(player.rot));
+    var v = new THREE.Vector3().addScaledVector(f, my).addScaledVector(r, mx);
+    if(v.length() > 0.05){
+      v.normalize();
+      player.pos.addScaledVector(v, speed*dt);
+      moved = true;
+      if(state.insideHome){
+        var lx = player.pos.x - HOME_ORIGIN.x;
+        var lz = player.pos.z - HOME_ORIGIN.z;
+        player.pos.x = HOME_ORIGIN.x + Math.max(-5.5, Math.min(5.5, lx));
+        player.pos.z = HOME_ORIGIN.z + Math.max(-5.5, Math.min(5.5, lz));
+      } else {
+        player.pos.x = Math.max(-95, Math.min(95, player.pos.x));
+        player.pos.z = Math.max(-95, Math.min(95, player.pos.z));
+      }
+    }
+  }
+  player.running = running && moved;
+
+  if(player.running && state.hasBasket && state.basketFruit > 0){
+    player._dropAcc = (player._dropAcc || 0) + dt;
+    if(player._dropAcc > 1.2){
+      player._dropAcc = 0;
+      state.basketFruit = Math.max(0, state.basketFruit - 1);
+      showToast('🍎 انار افتاد!');
+      updateHUD();
+    }
+  }
+
+  if(moved && !state.sitting){
+    player.walkPhase += dt * (player.running ? 14 : 9);
+    var sw = Math.sin(player.walkPhase) * (player.running ? 0.85 : 0.5);
+    player.legs.l.rotation.x = sw;
+    player.legs.r.rotation.x = -sw;
+    if(!player.covering){
+      player.arms.l.rotation.x = -sw*0.6;
+      player.arms.r.rotation.x = sw*0.6;
+    }
+    cameraBob += dt * (player.running ? 14 : 9);
+  } else {
+    player.walkPhase *= 0.85;
+    player.legs.l.rotation.x *= 0.85;
+    player.legs.r.rotation.x *= 0.85;
+    if(!player.covering){
+      player.arms.l.rotation.x *= 0.85;
+      player.arms.r.rotation.x *= 0.85;
+    }
+  }
+
+  var targetT = player.covering ? 1 : 0;
+  player.coverT += (targetT - player.coverT) * Math.min(1, dt*6);
+  var cT = player.coverT;
+  if(cT > 0.05){
+    player.arms.r.rotation.x = -cT*2.6;
+    player.arms.r.rotation.z = cT*0.6;
+    player.arms.l.rotation.x = -cT*2.2;
+    player.arms.l.rotation.z = -cT*0.5;
+    player.head.rotation.x = cT*0.35;
+  } else {
+    player.arms.r.rotation.z = 0;
+    player.arms.l.rotation.z = 0;
+    player.head.rotation.x = 0;
+  }
+
+  if(state.sitting){
+    player.group.position.set(HOME_ORIGIN.x - 3.5, HOME_ORIGIN.y + 0.25, HOME_ORIGIN.z + 2.2);
+    player.group.rotation.y = Math.PI;
+    player.legs.l.rotation.x = -1.2;
+    player.legs.r.rotation.x = -1.2;
+  } else {
+    player.group.position.copy(player.pos);
+    player.group.rotation.y = player.rot;
+  }
+}
+
+function updateCamera(dt){
+  var back = new THREE.Vector3(Math.sin(player.rot), 0, Math.cos(player.rot));
+  var dist = Math.max(4.5, Math.min(6.8, window.innerWidth/160));
+  var bob = Math.sin(cameraBob) * (player.running ? 0.06 : 0.03);
+  var baseY = state.sitting ? 2.4 : dist*0.55 + 1.3;
+  var anchor = state.sitting ? player.group.position : player.pos;
+  var desired = anchor.clone()
+    .addScaledVector(back, state.sitting ? 3.5 : dist)
+    .add(new THREE.Vector3(0, baseY + bob, 0));
+  camera.position.lerp(desired, Math.min(1, dt*4));
+  var lookY = state.sitting ? 1.6 : 1.5 + player.pitch * 2.5;
+  camTarget.copy(anchor).add(new THREE.Vector3(0, lookY, 0));
+  camera.lookAt(camTarget);
+}
+
+function updateInteractPrompt(){
+  if(state.dialogueOpen || mg.active){
+    promptEl.classList.remove('show');
+    return;
+  }
+  var best = null, bestD = Infinity;
+  for(var i=0; i<interactables.length; i++){
+    var it = interactables[i];
+    if(state.insideHome !== it.inHome) continue;
+    var d = Math.hypot(player.pos.x - it.x, player.pos.z - it.z);
+    if(d < it.r && d < bestD){ best = it; bestD = d; }
+  }
+  currentInteract = best;
+  if(best){
+    promptEl.textContent = '👉 ' + best.label;
+    promptEl.classList.add('show');
+  } else {
+    promptEl.classList.remove('show');
+  }
+}
+
+function updateSheep(dt){
+  if(!state.sheepFollowing) return;
+  sheep.forEach(function(s, i){
+    var target = player.pos.clone().add(new THREE.Vector3(Math.cos(i*1.1)*3.2, 0, Math.sin(i*1.1)*3.2));
+    var dir = target.clone().sub(s.group.position);
+    var d = dir.length();
+    if(d > 0.5){
+      dir.normalize();
+      s.group.position.addScaledVector(dir, Math.min(d, 3.0*dt));
+      s.group.rotation.y = Math.atan2(dir.x, dir.z) + Math.PI;
+    }
+  });
+  var dxp = player.pos.x - 70, dzp = player.pos.z + 45;
+  if(!state.sheepInPasture && dxp*dxp + dzp*dzp < 24*24){
+    state.sheepInPasture = true;
+    showToast('🐑 رسید چراگاه!');
+  }
+  if(state.sheepInPasture && state.hour >= 19 && !state.waitingForNight){
+    state.waitingForNight = true;
+    showToast('🌙 غروب — برگردون!');
+  }
+  var dxb = player.pos.x - 60, dzb = player.pos.z + 10;
+  if(state.waitingForNight && dxb*dxb + dzb*dzb < 6*6){
+    state.sheepFollowing = false;
+    state.sheepInPasture = false;
+    state.waitingForNight = false;
+    state.money += 700;
+    if(state.job && state.job.type === 'sheep') state.job = null;
+    showToast('✅ گله برگشت — +۷۰۰');
+    updateHUD();
+  }
+}
+
+function updateFishSystem(dt){
+  if(!state.job || state.job.type !== 'fish'){
+    fishingBite = false;
+    return;
+  }
+  if(fishingBite) return;
+  fishingTimer += dt;
+  if(fishingTimer >= 2 + Math.random()*2){
+    fishingBite = true;
+    showToast('🐟 ماهی! برو کشیدن ماهی بزن');
+  }
+}
+
+function updateMiniGameCursor(dt){
+  if(!mg.active) return;
+  mg.timer += dt;
+  mg.cursor = (Math.sin(mg.timer * mg.speed * 2) + 1) / 2;
+  document.getElementById('mgCursor').style.left = (mg.cursor*100) + '%';
+}
+
+function updateLighting(){
+  var h = state.hour + state.minute/60;
+  var sunI = 0;
+  if(h >= 6 && h < 8){ sunI = (h-6)/2 * 1.35; }
+  else if(h >= 8 && h < 17){ sunI = 1.35; }
+  else if(h >= 17 && h < 20){ sunI = 1.35 * (1 - (h-17)/3); }
+  else { sunI = 0.06; }
+
+  sun.intensity = sunI;
+  ambNight.intensity = 0.4 * (1 - Math.min(1, sunI/1.35));
+  hemi.intensity = 0.15 + 0.5 * Math.min(1, sunI/1.35);
+
+  var dayTop = new THREE.Color(0x3a7ab8), dayBot = new THREE.Color(0xcfd8e0);
+  var sunsetTop = new THREE.Color(0x4a3a6a), sunsetBot = new THREE.Color(0xff9966);
+  var nightTop = new THREE.Color(0x0a0e1e), nightBot = new THREE.Color(0x1a2040);
+  var top, bot;
+
+  if(h >= 5 && h < 7){
+    var t1 = (h-5)/2;
+    top = nightTop.clone().lerp(sunsetTop, t1);
+    bot = nightBot.clone().lerp(sunsetBot, t1);
+  } else if(h >= 7 && h < 17){
+    var t2 = Math.min(1, (h-7)/3);
+    top = sunsetTop.clone().lerp(dayTop, t2);
+    bot = sunsetBot.clone().lerp(dayBot, t2);
+  } else if(h >= 17 && h < 19){
+    var t3 = (h-17)/2;
+    top = dayTop.clone().lerp(sunsetTop, t3);
+    bot = dayBot.clone().lerp(sunsetBot, t3);
+  } else if(h >= 19 && h < 21){
+    var t4 = (h-19)/2;
+    top = sunsetTop.clone().lerp(nightTop, t4);
+    bot = sunsetBot.clone().lerp(nightBot, t4);
+  } else {
+    top = nightTop;
+    bot = nightBot;
+  }
+
+  skyMat.uniforms.topColor.value.copy(top);
+  skyMat.uniforms.bottomColor.value.copy(bot);
+
+  var ang = ((h - 6) / 24) * Math.PI * 2;
+  sun.position.set(Math.cos(ang)*80, Math.max(10, Math.sin(ang)*90), 40);
+
+  var R = 300;
+  sunDisc.position.set(Math.cos(ang)*R*0.5, Math.sin(ang)*R*0.4, 200);
+  sunDisc.lookAt(0, 20, 0);
+  sunDisc.material.opacity = Math.max(0, Math.min(0.9, sunI/1.35));
+
+  scene.fog.color.copy(bot);
+  scene.fog.density = (h >= 6 && h < 19) ? 0.0075 : 0.012;
+
+  var isNight = (h >= 19 || h < 6);
+  if(homeGroup.userData.light) homeGroup.userData.light.intensity = isNight ? 1.2 : 0.2;
+}
+
+var lastHudUpdate = 0;
+
+function animate(){
+  requestAnimationFrame(animate);
+  var dt = Math.min(0.05, clock.getDelta());
+
+  if(state.started && !state.paused){
+    timeAccum += dt;
+    while(timeAccum >= SEC_PER_GAME_MIN){
+      timeAccum -= SEC_PER_GAME_MIN;
+      advanceTime(1);
+    }
+    updatePlayer(dt);
+    updateSheep(dt);
+    updateDust(dt);
+    updateFishSystem(dt);
+    updateMiniGameCursor(dt);
+    updateCamera(dt);
+    updateInteractPrompt();
+    updateLighting();
+    sky.position.copy(camera.position);
+
+    lastHudUpdate += dt;
+    if(lastHudUpdate > 0.2){
+      lastHudUpdate = 0;
+      updateHUD();
+    }
+  }
+  renderer.render(scene, camera);
+}
+animate();
+
+// ==========================================================================
+// منو
+// ==========================================================================
+var menuEl = document.getElementById('menu');
+document.getElementById('btnStart').onclick = function(){
+  menuEl.classList.add('hidden');
+  document.getElementById('touchUI').classList.add('on');
+  state.started = true;
+  state.paused = false;
+  state.day = 0;
+  state.hour = 6;
+  state.minute = 0;
+  state.money = 200;
+  state.energy = 100;
+  updateHUD();
+  updateLighting();
+  checkOrientation();
+  showToast('👋 خوش آمدی! ۱۲ شغل در دسترسه');
+};
+document.getElementById('btnHelp').onclick = function(){
+  showDialog('راهنما',
+    '🕹️ جوی‌استیک چپ: راه رفتن\n👆 کشیدن راست: چرخش + بالا/پایین\n🏃 دکمه نارنجی: دویدن\n🅴 دکمه E: تعامل\n\n' +
+    '💼 ۱۲ شغل:\n🍎 انارچینی • 🐑 چوپانی • ✂️ آرایشگری • 🔥 جوشکاری\n🛒 سوپرمارکت • 🧱 ساختمانی • 🎣 ماهیگیری • 🔨 آهنگری\n🪚 نجاری • 🍞 خبازی • 💧 باغبانی • 📦 پیک\n\n' +
+    '⏰ ساعت ۸ شب برو خونه\n🏠 داخل: قلیون، تلویزیون، یخچال، تخت، مبل',
+    [{label:'فهمیدم'}]);
+};
+document.getElementById('btnAbout').onclick = function(){
+  showDialog('درباره',
+    '«همه چیز بلد»\n🎬 گرافیک واقع‌گرایانه\n🏠 خانه کامل\n💼 ۱۲ شغل با فرایند واقعی\n📱 موبایل و دسکتاپ',
+    [{label:'بستن'}]);
+};
+
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+document.addEventListener('touchmove', function(e){
+  if(e.touches.length > 1) e.preventDefault();
+}, {passive:false});
+
+checkOrientation();
+</script>
+</body>
+</html>
